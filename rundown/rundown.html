@@ -1,0 +1,169 @@
+<title>Color Commentary Topics</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@900&family=Barlow:wght@400;600;700&display=swap">
+<style>
+/* Layout: one phone-width column. Add box on top, the list under it. Each host is a color. */
+:root {
+  --bg: #F2F3F7; --surface: #FFFFFF; --ink: #141A2B; --muted: #5B6377; --line: #D8DBE4;
+  --accent: #D9232D; --accent-ink: #FFFFFF;
+  --jd: #2C59E8; --kris: #E8641A; --june: #9B35C6;
+  --f-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+  --f-body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1220; --surface: #171D2D; --ink: #ECEEF5; --muted: #9AA2B7; --line: #29314A;
+    --accent: #FF4049; --accent-ink: #FFFFFF; --jd: #6E90FF; --kris: #FF8C4A; --june: #C877EC; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1220; --surface: #171D2D; --ink: #ECEEF5; --muted: #9AA2B7; --line: #29314A;
+  --accent: #FF4049; --accent-ink: #FFFFFF; --jd: #6E90FF; --kris: #FF8C4A; --june: #C877EC; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 17px; line-height: 1.4;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px 40px; }
+.wrap { max-width: 640px; margin: 0 auto; display: grid; gap: 16px; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+h1 { margin: 0; font-family: var(--f-display); font-weight: 900; font-size: 34px; line-height: 1; text-transform: uppercase; letter-spacing: .01em; }
+.stripes { display: flex; height: 5px; border-radius: 3px; overflow: hidden; margin-top: 8px; }
+.stripes span { flex: 1; }
+.who { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 14px; color: var(--muted); }
+.who button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.who button[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+form { display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+input, textarea { width: 100%; min-width: 0; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+textarea { min-height: 56px; resize: vertical; }
+.add { border: 0; border-radius: 8px; padding: 10px 16px; font-weight: 700; background: var(--accent); color: var(--accent-ink); justify-self: start; }
+.add:disabled { opacity: .5; cursor: not-allowed; }
+ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+li.t { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: start; }
+li.t.done { opacity: .55; }
+li.t.done .title { text-decoration: line-through; }
+.check { width: 22px; height: 22px; margin-top: 2px; accent-color: var(--accent); }
+.body { min-width: 0; display: grid; gap: 3px; }
+.title { font-weight: 700; overflow-wrap: anywhere; }
+.notes { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; }
+.link { font-size: 14px; color: var(--jd); overflow-wrap: anywhere; }
+.by { font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; }
+.del { border: 0; background: transparent; color: var(--muted); font-size: 18px; padding: 0 4px; line-height: 1; }
+.confirm { grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; font-size: 14px; }
+.confirm button { border: 1px solid var(--line); background: transparent; border-radius: 6px; padding: 4px 10px; font-weight: 600; }
+.confirm .yes { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; color: var(--muted); }
+.foot button { border: 1px solid var(--line); background: transparent; border-radius: 6px; padding: 5px 10px; font-weight: 600; color: var(--ink); }
+.msg { font-size: 15px; color: var(--muted); }
+.banner { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; padding: 10px 12px; font-size: 15px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Color Commentary Topics</h1>
+    <div class="stripes" aria-hidden="true"><span style="background:var(--jd)"></span><span style="background:var(--kris)"></span><span style="background:var(--june)"></span></div>
+  </header>
+
+  <div class="who" id="who"></div>
+  <div class="banner" id="banner" hidden></div>
+
+  <form id="addForm" autocomplete="off">
+    <input id="tTitle" type="text" placeholder="Topic" aria-label="Topic" required>
+    <input id="tLink" type="url" placeholder="Link (optional)" aria-label="Link">
+    <textarea id="tNotes" placeholder="Notes (optional)" aria-label="Notes"></textarea>
+    <button class="add" id="addBtn" type="submit">Add topic</button>
+  </form>
+
+  <ul id="list"><li class="msg">Loading topics…</li></ul>
+  <div class="foot" id="foot" hidden><span id="count"></span><button type="button" id="clearDone">Clear checked off</button></div>
+</div>
+
+<script>
+(() => {
+  const HOSTS = [["JD", "JD", "var(--jd)"], ["Kris", "Kris", "var(--kris)"], ["June", "Big June", "var(--june)"]];
+  const HOST = Object.fromEntries(HOSTS.map(([k, n, c]) => [k, { name: n, color: c }]));
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const safeUrl = u => /^https?:\/\//i.test(String(u || "").trim()) ? String(u).trim() : "";
+  let me = null; try { me = localStorage.getItem("cc.host"); } catch {}
+  let db = null, readOnly = false, topics = [], confirming = null;
+
+  function banner(m) { $("banner").hidden = !m; $("banner").textContent = m || ""; }
+  async function write(fn) {
+    if (!db || readOnly) return false;
+    try { await fn(); return true; }
+    catch (e) {
+      if (e?.code === "invalid_argument") { readOnly = true; banner("You can see the list but not change it. Ask Kris to share it with you as an Editor."); render(); }
+      else banner("Didn't save. Check your connection and try again.");
+      return false;
+    }
+  }
+
+  function renderWho() {
+    $("who").innerHTML = `<span>I'm</span>` + HOSTS.map(([k, n, c]) => `<button type="button" data-host="${k}" aria-pressed="${me === k}"><span class="dot" style="background:${c}"></span>${n}</button>`).join("");
+  }
+  $("who").addEventListener("click", e => {
+    const b = e.target.closest("[data-host]"); if (!b) return;
+    me = b.dataset.host; try { localStorage.setItem("cc.host", me); } catch {}
+    renderWho();
+  });
+
+  function render() {
+    $("addBtn").disabled = !db || readOnly;
+    if (!db) return;
+    const open = topics.filter(t => !t.done), done = topics.filter(t => t.done);
+    const rows = [...open, ...done];
+    $("list").innerHTML = rows.length ? rows.map(t => {
+      const h = HOST[t.by]; const link = safeUrl(t.link);
+      return `<li class="t${t.done ? " done" : ""}" data-id="${esc(t.id)}">
+        <input class="check" type="checkbox" id="c-${esc(t.id)}" ${t.done ? "checked" : ""} aria-label="Covered">
+        <div class="body">
+          <label class="title" for="c-${esc(t.id)}">${esc(t.title)}</label>
+          ${t.notes ? `<div class="notes">${esc(t.notes)}</div>` : ""}
+          ${link ? `<a class="link" href="${esc(link)}" target="_blank" rel="noopener">${esc(link.replace(/^https?:\/\/(www\.)?/, ""))}</a>` : ""}
+          ${h ? `<span class="by"><span class="dot" style="background:${h.color}"></span>${esc(h.name)}</span>` : ""}
+        </div>
+        <button class="del" type="button" data-act="del" aria-label="Delete topic">✕</button>
+        ${confirming === t.id ? `<div class="confirm">Delete it? <button class="yes" type="button" data-act="yes">Delete</button><button type="button" data-act="no">Keep</button></div>` : ""}
+      </li>`;
+    }).join("") : `<li class="msg">No topics yet. Add the first one above.</li>`;
+    $("foot").hidden = !topics.length;
+    $("count").textContent = `${open.length} left · ${done.length} done`;
+    $("clearDone").hidden = !done.length;
+  }
+
+  $("addForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const title = $("tTitle").value.trim(); if (!title) return;
+    const ok = await write(() => db.collection("topics").add({ title, link: safeUrl($("tLink").value), notes: $("tNotes").value.trim(), by: me || "", done: false, createdAt: Date.now() }));
+    if (ok) { $("addForm").reset(); $("tTitle").focus(); }
+  });
+  $("list").addEventListener("change", e => {
+    if (!e.target.classList.contains("check")) return;
+    const id = e.target.closest("[data-id]").dataset.id;
+    write(() => db.doc(`topics/${id}`).update({ done: e.target.checked }));
+  });
+  $("list").addEventListener("click", async e => {
+    const act = e.target.closest("[data-act]")?.dataset.act; if (!act) return;
+    const id = e.target.closest("[data-id]").dataset.id;
+    if (act === "del") { confirming = id; render(); }
+    else if (act === "no") { confirming = null; render(); }
+    else if (act === "yes") { confirming = null; await write(() => db.doc(`topics/${id}`).delete()); }
+  });
+  $("clearDone").addEventListener("click", async () => {
+    for (const t of topics.filter(x => x.done)) { if (!(await write(() => db.doc(`topics/${t.id}`).delete()))) break; }
+  });
+
+  renderWho(); render();
+  (async () => {
+    db = window.claude?.use ? await window.claude.use("db") : null;
+    if (!db) { banner("Open this from claude.ai while signed in to see the shared list."); $("list").innerHTML = ""; return; }
+    try { const u = await window.claude.use("user"); if (u && (await u.can("data.write")) === false) { readOnly = true; banner("You can see the list but not change it. Ask Kris to share it with you as an Editor."); } } catch {}
+    db.collection("topics").orderBy("createdAt").onSnapshot(s => { topics = s.docs.map(d => ({ id: d.id, ...d.data() })); render(); },
+      () => banner("Lost the connection. Reload the page."));
+  })();
+})();
+</script>

@@ -1,0 +1,35 @@
+# Color Commentary settings. Change anything here; no code edits needed.
+
+[show]
+name = "Color Commentary"
+hosts = ["JD", "Kris", "Big June"]
+formerly = "The JD & Kris Show with Big June"
+# Pasted under every YouTube description. Put your real links here.
+footer = """
+Subscribe for new Shorts every week.
+Apple Podcasts: https://podcasts.apple.com/us/podcast/color-commentary/id1730077768
+YouTube: https://www.youtube.com/@ColorCommentaryPod
+"""
+
+[clips]
+count = 8            # how many Short ideas to ask for
+min_seconds = 20
+max_seconds = 75     # YouTube allows up to 3:00, but tighter usually plays better
+model = "claude-opus-5-5"
+
+[brand]
+# Hex colors. accent = the word that lights up in captions; hook_bg = the title bar.
+accent = "#F5C400"
+text = "#FFFFFF"
+outline = "#000000"
+hook_bg = "#D9232D"
+hook_text = "#FFFFFF"
+font = "Arial Black"   # any font installed on the editing machine, or drop a .ttf/.otf in fonts/
+caption_words = 3      # words on screen at once
+logo = ""              # optional path to a PNG, shown small at the bottom
+
+[render]
+layout = "blur"        # blur = full frame over a blurred fill, crop = tight 9:16 crop
+loudness = -14         # LUFS target for Shorts
+sfx_volume = 0.8
+crf = 20

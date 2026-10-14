@@ -1,0 +1,10 @@
+__pycache__/
+*.egg-info/
+.venv/
+.pytest_cache/
+out/
+episodes/
+*.mp4
+*.mov
+*.wav
+!sfx/*.wav

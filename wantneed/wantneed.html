@@ -4,7 +4,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: one column. Big button, add box with a Need-to-Want slider, then one stacked list: Need on top, Both, Want at the bottom.
+/* Layout: one column. Big button, add box, then one list grouped Urgent, Both, Need, Want. Every task has two up-and-down faders: red Need, acid Want.
    Colors and type are kriskoivisto.com: near-black zinc, acid green (#CCFF00), red (#E03A3E), cement; Anton, Manrope, JetBrains Mono.
    Square corners and spaced-out mono labels, like the site. Always dark, like the site. */
 :root {
@@ -44,16 +44,24 @@ form { background: var(--surface); border: 1px solid var(--border); padding: 12p
 .ends .w { color: var(--want); } .ends .n { color: var(--need-text); }
 .ends .mid { font-family: var(--f-display); font-size: 22px; letter-spacing: .03em; font-weight: 400; }
 
-/* the stacked bar: red fills from the left as it gets more Need, acid green is the rest */
-input[type="range"].bar { -webkit-appearance: none; appearance: none; width: 100%; height: 30px; margin: 0; background: transparent; cursor: pointer; touch-action: pan-y; }
-input[type="range"].bar::-webkit-slider-runnable-track { height: 14px; border-radius: 0; background: linear-gradient(to right, var(--need) 0 var(--p), var(--want) var(--p) 100%); }
-input[type="range"].bar::-moz-range-track { height: 14px; border-radius: 0; background: linear-gradient(to right, var(--need) 0 var(--p), var(--want) var(--p) 100%); }
-input[type="range"].bar::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; margin-top: -7px; border-radius: 50%; background: var(--ink); border: 4px solid var(--bg); box-shadow: 0 0 0 1px var(--ink); }
-input[type="range"].bar::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--ink); border: 4px solid var(--bg); box-shadow: 0 0 0 1px var(--ink); }
-input[type="range"].bar.small { height: 26px; }
-input[type="range"].bar.small::-webkit-slider-runnable-track { height: 8px; }
-input[type="range"].bar.small::-moz-range-track { height: 8px; }
-input[type="range"].bar.small::-webkit-slider-thumb { width: 22px; height: 22px; margin-top: -7px; border-width: 3px; }
+/* faders: fill from the bottom, drag or tap anywhere on them */
+.faders { display: flex; gap: 6px; align-items: flex-end; flex: none; }
+.fd { display: grid; justify-items: center; gap: 3px; }
+.fader { position: relative; width: 26px; height: 64px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--border); cursor: ns-resize; touch-action: none; -webkit-user-select: none; user-select: none; }
+.fader i { position: absolute; left: 0; right: 0; bottom: 0; height: var(--v); }
+.fader i::before { content: ""; position: absolute; left: -3px; right: -3px; top: -2px; height: 4px; background: var(--ink); }
+.fader.need i { background: var(--need); } .fader.want i { background: var(--want); }
+.fader:focus { outline: none; }
+.fader:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.fd small { font: 500 9px var(--f-mono); letter-spacing: .15em; text-transform: uppercase; }
+.fd small.n { color: var(--need-text); } .fd small.w { color: var(--want); }
+.fader.big { width: 44px; height: 110px; }
+.addopts { display: flex; gap: 14px; align-items: flex-end; }
+.addopts .faders { gap: 12px; }
+.addopts .side { flex: 1; min-width: 0; display: grid; gap: 8px; align-content: end; }
+.toggle { border: 1px solid var(--border); background: var(--bg); color: var(--muted); padding: 11px 12px; font: 500 11px var(--f-mono); letter-spacing: .25em; text-transform: uppercase; text-align: left; }
+.toggle[aria-pressed="true"] { background: var(--need); border-color: var(--need); color: #fff; }
+.hintline { font-size: 13px; color: var(--muted); line-height: 1.35; }
 
 /* the list */
 .grp { display: grid; gap: 6px; }
@@ -70,10 +78,29 @@ li .x { flex: none; width: 44px; height: 50px; border: 0; background: transparen
 li .x:hover { color: var(--ink); }
 .empty { color: var(--muted); text-align: center; padding: 18px 8px; border: 1px dashed var(--border); }
 
+li { align-items: stretch; }
+li .mid { padding: 12px 0; cursor: pointer; align-content: start; }
+li .faders { padding: 8px 4px 8px 8px; }
+li .x { align-self: flex-start; }
+li.urgent { border-color: var(--need); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font: 500 9.5px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; padding: 3px 6px; border: 1px solid var(--border); color: var(--muted); }
+.chip.u { background: var(--need); border-color: var(--need); color: #fff; }
+.chip.r { color: var(--want); border-color: rgba(204,255,0,.4); }
+.chip.now { background: var(--want); border-color: var(--want); color: var(--bg); }
+.more { font: 500 10px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--dim); }
+.panel { background: var(--surface); border: 1px solid var(--border); border-top: 0; margin-top: -6px; padding: 12px; display: grid; gap: 10px; }
+.panel label { font: 500 10px var(--f-mono); letter-spacing: .25em; text-transform: uppercase; color: var(--muted); }
+.panel input[type="datetime-local"] { width: 100%; min-width: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 0; padding: 10px; font-size: 16px; }
+.prow { display: flex; gap: 8px; flex-wrap: wrap; }
+.pbtn { border: 1px solid var(--border); background: var(--bg); color: var(--ink); padding: 11px 12px; font: 500 11px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; text-decoration: none; display: inline-block; }
+.pbtn.cal { border-color: var(--want); color: var(--want); }
+.pbtn.ghost { border-color: transparent; color: var(--muted); }
+
 /* "just this one" screen */
 #one { position: fixed; inset: 0; background: var(--bg); z-index: 20; display: grid; align-content: center; justify-items: center; gap: 20px; text-align: center;
   padding: calc(24px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px)); }
-#oneTag { font: 400 11px var(--f-mono); text-transform: uppercase; letter-spacing: .3em; }
+#oneTag { font: 500 11px var(--f-mono); text-transform: uppercase; letter-spacing: .3em; }
 #oneTag:not(:empty)::before { content: "/// "; }
 #oneT { font-family: var(--f-display); font-size: 48px; line-height: 1.02; text-transform: uppercase; max-width: 16ch; overflow-wrap: anywhere; text-wrap: balance; letter-spacing: .01em; }
 #one .acts { display: grid; gap: 10px; width: 100%; max-width: 340px; }
@@ -98,9 +125,15 @@ li .x:hover { color: var(--ink); }
       <input id="txt" type="text" placeholder="Something on your mind…" aria-label="New thing">
       <button class="addbtn" type="submit">Add</button>
     </div>
-    <div class="sl">
-      <div class="ends"><span class="n">Need</span><span class="mid" id="addWord">Both</span><span class="w">Want</span></div>
-      <input class="bar" id="addBar" type="range" min="0" max="100" step="5" value="50" aria-label="Want or need">
+    <div class="addopts">
+      <div class="faders">
+        <div class="fd"><div class="fader need big" id="addNeed" role="slider" tabindex="0" aria-label="How much I need to" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" style="--v:50%"><i></i></div><small class="n">Need</small></div>
+        <div class="fd"><div class="fader want big" id="addWant" role="slider" tabindex="0" aria-label="How much I want to" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" style="--v:50%"><i></i></div><small class="w">Want</small></div>
+      </div>
+      <div class="side">
+        <div class="hintline">Slide each one up or down. Tap any task to make it urgent or set a reminder.</div>
+        <button class="toggle" type="button" id="addUrgent" aria-pressed="false">Urgent</button>
+      </div>
     </div>
   </form>
 
@@ -124,14 +157,19 @@ li .x:hover { color: var(--ink); }
 (() => {
   const $ = id => document.getElementById(id);
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const pad = n => String(n).padStart(2, "0");
   const dayKey = ms => { const d = new Date(ms); return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate(); };
-  // lean: 0 = all want, 50 = both, 100 = all need. Older items saved as need/want get 100/0.
-  // On the bar, red (need) fills from the left. Slide right for more need, left for more want (acid green).
-  const leanOf = t => typeof t.lean === "number" ? Math.max(0, Math.min(100, t.lean)) : t.kind === "need" ? 100 : t.kind === "want" ? 0 : 50;
-  const zone = v => v > 60 ? "need" : v >= 40 ? "both" : "want";
-  const word = v => v >= 85 ? "Need" : v > 60 ? "Mostly need" : v >= 40 ? "Both" : v > 15 ? "Mostly want" : "Want";
-  const zoneColor = { need: "var(--need-text)", both: "var(--both)", want: "var(--want)" };
-  let tasks = [], store = null, loaded = false, current = null, skipped = [], undoFn = null, toastT = null;
+  const clamp = v => Math.max(0, Math.min(100, Math.round((Number(v) || 0) / 5) * 5));
+  // need and want are 0-100 each. Older saved items (one slider, or need/want lists) are converted on read.
+  const both = t => typeof t.need === "number" && typeof t.want === "number";
+  const needOf = t => both(t) ? clamp(t.need) : typeof t.lean === "number" ? clamp(t.lean) : t.kind === "need" ? 100 : t.kind === "want" ? 0 : 50;
+  const wantOf = t => both(t) ? clamp(t.want) : typeof t.lean === "number" ? clamp(100 - t.lean) : t.kind === "want" ? 100 : t.kind === "need" ? 0 : 50;
+  const ringing = t => !t.done && t.remindAt && t.remindAt <= Date.now();
+  const groupOf = t => t.urgent || ringing(t) ? "urgent" : needOf(t) >= 50 && wantOf(t) >= 50 ? "both" : needOf(t) >= wantOf(t) ? "need" : "want";
+  const GROUPS = [["urgent", "Urgent"], ["both", "Both"], ["need", "Need"], ["want", "Want"]];
+  const groupColor = { urgent: "var(--need-text)", both: "var(--both)", need: "var(--need-text)", want: "var(--want)" };
+  let tasks = [], store = null, loaded = false, current = null, skipped = [], undoFn = null, toastT = null, openId = null;
+  let draft = { need: 50, want: 50, urgent: false };
 
   // ---------- saving: your account when available, otherwise this device
   const use = n => (window.claude && typeof window.claude.use === "function") ? window.claude.use(n) : Promise.resolve(null);
@@ -150,68 +188,146 @@ li .x:hover { color: var(--ink); }
     };
   }
   function oops() { toast("That didn't save. Check your connection."); }
-  function save(t) { tasks = tasks.filter(x => x.id !== t.id).concat([t]); render(); store && store.save(t).catch(oops); }
+  // every save writes the item in the current shape (need, want, urgent, remindAt)
+  function norm(t) { const { lean, kind, ...r } = t; return { ...r, need: needOf(t), want: wantOf(t), urgent: !!t.urgent, remindAt: t.remindAt || null }; }
+  function save(t) { t = norm(t); tasks = tasks.filter(x => x.id !== t.id).concat([t]); render(); store && store.save(t).catch(oops); }
   function del(id) { tasks = tasks.filter(x => x.id !== id); render(); store && store.remove(id).catch(oops); }
 
   function toast(msg, undo) {
     clearTimeout(toastT); undoFn = undo || null;
     $("toast").innerHTML = esc(msg) + (undo ? ' <button type="button" id="undo">Undo</button>' : "");
-    $("toast").hidden = false; toastT = setTimeout(() => { $("toast").hidden = true; undoFn = null; }, undo ? 6000 : 2500);
+    $("toast").hidden = false; toastT = setTimeout(() => { $("toast").hidden = true; undoFn = null; }, undo ? 6000 : 3500);
   }
   $("toast").addEventListener("click", e => { if (e.target.id === "undo" && undoFn) { const f = undoFn; undoFn = null; $("toast").hidden = true; f(); } });
 
-  // ---------- the stacked list: Need on top, Both in the middle, Want on the bottom
-  const openTasks = () => tasks.filter(t => !t.done).sort((a, b) => leanOf(b) - leanOf(a) || (a.created || 0) - (b.created || 0));
+  // ---------- reminders
+  const fmtWhen = ms => { const d = new Date(ms), today = dayKey(Date.now()) === dayKey(ms), tm = new Date(Date.now() + 864e5);
+    const day = today ? "Today" : dayKey(tm.getTime()) === dayKey(ms) ? "Tomorrow" : d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+    return day + " " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }); };
+  const toLocalInput = ms => { const d = new Date(ms); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()); };
+  // iPhone Calendar takes events as a calendar file. This free link service turns the details into one, with an alert at the start time.
+  function calLink(t) {
+    const a = new Date(t.remindAt), b = new Date(t.remindAt + 30 * 6e4);
+    const q = new URLSearchParams({ subject: t.title, description: "From Want / Need", dtstart: a.toISOString().replace(/\.\d+Z$/, "Z"), dtend: b.toISOString().replace(/\.\d+Z$/, "Z"), reminder: "0" });
+    return "https://ics.agical.io/?" + q.toString();
+  }
+  function siriText(t) {
+    const d = new Date(t.remindAt);
+    return "Remind me to " + t.title + " on " + d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }) + " at " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  }
+
+  // ---------- the list
+  const score = t => (t.urgent ? 1000 : 0) + (ringing(t) ? 500 : 0) + needOf(t) + wantOf(t) * 0.6;
+  const openTasks = () => tasks.filter(t => !t.done).sort((a, b) => score(b) - score(a) || (a.created || 0) - (b.created || 0));
+  const fader = (kind, v, label, id) => `<div class="fd"><div class="fader ${kind}" role="slider" tabindex="0" data-f="${kind}" aria-label="${kind === "need" ? "Need" : "Want"}: ${esc(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v}" style="--v:${v}%"${id ? ` id="${id}"` : ""}><i></i></div><small class="${kind[0]}">${kind === "need" ? "N" : "W"}</small></div>`;
+  function panel(t) {
+    return `<li class="panel" data-id="${esc(t.id)}">
+      <div class="prow"><button class="toggle" type="button" data-a="urgent" aria-pressed="${!!t.urgent}">Urgent</button></div>
+      <label for="re_${esc(t.id)}">Remind me</label>
+      <input type="datetime-local" id="re_${esc(t.id)}" data-a="when" value="${t.remindAt ? toLocalInput(t.remindAt) : ""}">
+      ${t.remindAt ? `<div class="prow">
+        <a class="pbtn cal" href="${esc(calLink(t))}" target="_blank" rel="noopener">Add to iPhone Calendar</a>
+        <button class="pbtn" type="button" data-a="siri">Copy for Siri</button>
+        <button class="pbtn ghost" type="button" data-a="clearwhen">No reminder</button></div>
+        <div class="hintline">Calendar adds the event with an alert. Copy for Siri, then hold the side button and paste, or type it to Siri. That makes a real Reminder.</div>`
+        : `<div class="hintline">Pick a day and time. Then you can send it to your iPhone Calendar or to Reminders.</div>`}
+      <div class="prow"><button class="pbtn ghost" type="button" data-a="close">Close</button></div>
+    </li>`;
+  }
+  function row(t) {
+    const chips = [];
+    if (t.urgent) chips.push(`<span class="chip u">Urgent</span>`);
+    if (t.remindAt) chips.push(`<span class="chip ${ringing(t) ? "now" : "r"}">${ringing(t) ? "Now" : esc(fmtWhen(t.remindAt))}</span>`);
+    return `<li data-id="${esc(t.id)}" class="${t.urgent ? "urgent" : ""}">
+      <button class="chk" type="button" data-a="done" aria-label="Done: ${esc(t.title)}"><span></span></button>
+      <div class="mid" data-a="open"><span class="t">${esc(t.title)}</span>${chips.length ? `<div class="chips">${chips.join("")}</div>` : ""}</div>
+      <div class="faders">${fader("need", needOf(t), t.title)}${fader("want", wantOf(t), t.title)}</div>
+      <button class="x" type="button" data-a="del" aria-label="Delete ${esc(t.title)}">×</button></li>${openId === t.id ? panel(t) : ""}`;
+  }
   function render() {
     const items = openTasks();
     if (!items.length) $("list").innerHTML = `<div class="empty">${loaded ? "Nothing on the list. Add something up top." : "Loading…"}</div>`;
     else {
-      const groups = { need: [], both: [], want: [] };
-      items.forEach(t => groups[zone(leanOf(t))].push(t));
-      $("list").innerHTML = [["need", "Need"], ["both", "Both"], ["want", "Want"]].filter(([k]) => groups[k].length).map(([k, label]) =>
-        `<section class="grp ${k}"><h2>${label}</h2><ul>${groups[k].map(t => { const v = leanOf(t); return `<li data-id="${esc(t.id)}">
-          <button class="chk" type="button" data-a="done" aria-label="Done: ${esc(t.title)}"><span></span></button>
-          <div class="mid"><span class="t">${esc(t.title)}</span>
-            <input class="bar small" type="range" min="0" max="100" step="5" value="${v}" style="--p:${v}%" aria-label="Want or need: ${esc(t.title)}" id="b_${esc(t.id)}"></div>
-          <button class="x" type="button" data-a="del" aria-label="Delete ${esc(t.title)}">×</button></li>`; }).join("")}</ul></section>`).join("");
+      const g = { urgent: [], both: [], need: [], want: [] };
+      items.forEach(t => g[groupOf(t)].push(t));
+      $("list").innerHTML = GROUPS.filter(([k]) => g[k].length).map(([k, label]) => `<section class="grp ${k}"><h2 style="color:${groupColor[k]}">${label}</h2><ul>${g[k].map(row).join("")}</ul></section>`).join("");
     }
     const today = dayKey(Date.now()), n = tasks.filter(t => t.done && t.doneAt && dayKey(t.doneAt) === today).length;
     $("count").textContent = n ? n + " done today" : "";
+    const ring = tasks.filter(ringing).length; document.title = ring ? "(" + ring + ") Want / Need" : "Want / Need";
   }
-  function finish(t) { const was = { ...t }; save({ ...t, done: true, doneAt: Date.now() }); toast("Done: " + t.title, () => save(was)); }
-  $("list").addEventListener("click", e => {
-    const b = e.target.closest("[data-a]"), li = e.target.closest("li[data-id]"); if (!b || !li) return;
-    const t = tasks.find(x => x.id === li.dataset.id); if (!t) return;
-    if (b.dataset.a === "done") finish(t);
-    else { const was = { ...t }; del(t.id); toast("Deleted", () => save(was)); }
+  function finish(t) { const was = { ...t }; if (openId === t.id) openId = null; save({ ...t, done: true, doneAt: Date.now() }); toast("Done: " + t.title, () => save(was)); }
+
+  $("list").addEventListener("click", async e => {
+    const b = e.target.closest("[data-a]"); if (!b || b.classList.contains("fader")) return;
+    const host = e.target.closest("[data-id]"); const t = host && tasks.find(x => x.id === host.dataset.id); if (!t) return;
+    switch (b.dataset.a) {
+      case "done": finish(t); break;
+      case "del": { const was = { ...t }; if (openId === t.id) openId = null; del(t.id); toast("Deleted", () => save(was)); break; }
+      case "open": openId = openId === t.id ? null : t.id; render(); break;
+      case "close": openId = null; render(); break;
+      case "urgent": save({ ...t, urgent: !t.urgent }); break;
+      case "clearwhen": save({ ...t, remindAt: null }); break;
+      case "siri": {
+        const txt = siriText(t);
+        try { await navigator.clipboard.writeText(txt); toast("Copied. Now hold the side button and paste it to Siri."); }
+        catch { toast(txt); }
+        break;
+      }
+    }
   });
-  // sliding: the bar repaints while you drag, the list re-sorts when you let go
-  $("list").addEventListener("input", e => { if (e.target.classList.contains("bar")) e.target.style.setProperty("--p", e.target.value + "%"); });
   $("list").addEventListener("change", e => {
-    if (!e.target.classList.contains("bar")) return;
-    const li = e.target.closest("li[data-id]"), t = li && tasks.find(x => x.id === li.dataset.id); if (!t) return;
-    const v = Number(e.target.value); if (v !== leanOf(t)) save({ ...t, lean: v });
+    if (e.target.dataset.a !== "when") return;
+    const host = e.target.closest("[data-id]"); const t = host && tasks.find(x => x.id === host.dataset.id); if (!t) return;
+    const v = e.target.value ? new Date(e.target.value).getTime() : null;
+    if (v !== t.remindAt) save({ ...t, remindAt: v });
+  });
+
+  // ---------- faders: drag or tap. The fill follows your finger; it saves when you let go.
+  let drag = null;
+  const valAt = (el, y) => { const r = el.getBoundingClientRect(); return clamp((r.bottom - y) / r.height * 100); };
+  const paint = (el, v) => { el.style.setProperty("--v", v + "%"); el.setAttribute("aria-valuenow", v); };
+  function commit(el, v) {
+    if (el.id === "addNeed") { draft.need = v; return; }
+    if (el.id === "addWant") { draft.want = v; return; }
+    const li = el.closest("li[data-id]"); const t = li && tasks.find(x => x.id === li.dataset.id); if (!t) return;
+    const f = el.dataset.f; if ((f === "need" ? needOf(t) : wantOf(t)) !== v) save({ ...t, [f]: v });
+  }
+  document.addEventListener("pointerdown", e => {
+    const el = e.target.closest(".fader"); if (!el) return;
+    e.preventDefault(); drag = { el, v: valAt(el, e.clientY) }; paint(el, drag.v);
+    try { el.setPointerCapture(e.pointerId); } catch {}
+  });
+  document.addEventListener("pointermove", e => { if (!drag) return; drag.v = valAt(drag.el, e.clientY); paint(drag.el, drag.v); });
+  const end = () => { if (!drag) return; const d = drag; drag = null; commit(d.el, d.v); };
+  document.addEventListener("pointerup", end); document.addEventListener("pointercancel", end);
+  document.addEventListener("keydown", e => {
+    const el = e.target.closest && e.target.closest(".fader"); if (!el) return;
+    const step = { ArrowUp: 10, ArrowRight: 10, ArrowDown: -10, ArrowLeft: -10 }[e.key]; if (!step) return;
+    e.preventDefault(); const v = clamp(Number(el.getAttribute("aria-valuenow")) + step); paint(el, v); commit(el, v);
   });
 
   // ---------- adding
-  function paintAdd() { const v = Number($("addBar").value); $("addBar").style.setProperty("--p", v + "%"); $("addWord").textContent = word(v); $("addWord").style.color = zoneColor[zone(v)]; }
-  $("addBar").addEventListener("input", paintAdd); paintAdd();
+  $("addUrgent").addEventListener("click", () => { draft.urgent = !draft.urgent; $("addUrgent").setAttribute("aria-pressed", String(draft.urgent)); });
   $("add").addEventListener("submit", e => {
     e.preventDefault();
     const v = $("txt").value.trim(); if (!v) { $("txt").focus(); return; }
-    save({ id: "t_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: v, lean: Number($("addBar").value), done: false, doneAt: null, created: Date.now() });
+    save({ id: "t_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: v, need: draft.need, want: draft.want, urgent: draft.urgent, remindAt: null, done: false, doneAt: null, created: Date.now() });
     $("txt").value = ""; $("txt").focus();
+    draft.urgent = false; $("addUrgent").setAttribute("aria-pressed", "false");
   });
 
   // ---------- "What should I do?"
-  // The most need first. Right after you finish something that leaned need, it hands you the most want as a reward.
+  // Urgent and reminders that are due come first, then the most need. Right after you finish a need, it hands you a want.
   function choose() {
     const pool = openTasks().filter(t => !skipped.includes(t.id)); if (!pool.length) return null;
+    const top = pool[0];
+    if (top.urgent || ringing(top)) return { t: top, why: top.urgent ? "Urgent" : "Reminder" };
     const last = tasks.filter(t => t.done && t.doneAt).sort((a, b) => b.doneAt - a.doneAt)[0];
-    const earned = last && leanOf(last) > 60 && Date.now() - last.doneAt < 6 * 36e5;
-    const treat = pool[pool.length - 1];
-    if (earned && leanOf(treat) < 40) return { t: treat, why: "You did a need. Have a want." };
-    return { t: pool[0], why: word(leanOf(pool[0])) };
+    const earned = last && needOf(last) > wantOf(last) && Date.now() - last.doneAt < 6 * 36e5;
+    const treats = pool.filter(t => groupOf(t) === "want").sort((a, b) => wantOf(b) - wantOf(a));
+    if (earned && treats.length) return { t: treats[0], why: "You did a need. Have a want." };
+    const g = groupOf(top); return { t: top, why: g === "both" ? "Need it and want it" : g === "need" ? "Need" : "Want" };
   }
   function show() {
     const c = choose(); current = c && c.t;
@@ -219,7 +335,7 @@ li .x:hover { color: var(--ink); }
       $("oneTag").textContent = ""; $("oneT").textContent = openTasks().length ? "That's everything. Pick any, or take a break." : "Nothing on the list. You're free.";
       $("oneDone").hidden = true; $("oneSkip").hidden = !skipped.length; $("oneSkip").textContent = "Start over";
     } else {
-      $("oneTag").textContent = c.why; $("oneTag").style.color = zoneColor[zone(leanOf(c.t))];
+      $("oneTag").textContent = c.why; $("oneTag").style.color = c.why === "You did a need. Have a want." ? "var(--want)" : groupColor[groupOf(c.t)];
       $("oneT").textContent = c.t.title; $("oneDone").hidden = false; $("oneSkip").hidden = false; $("oneSkip").textContent = "Not this one";
     }
     $("one").hidden = false;
@@ -228,7 +344,11 @@ li .x:hover { color: var(--ink); }
   $("oneDone").addEventListener("click", () => { if (current) finish(current); skipped = []; show(); });
   $("oneSkip").addEventListener("click", () => { if (current) skipped.push(current.id); else skipped = []; show(); });
   $("oneBack").addEventListener("click", () => { $("one").hidden = true; });
-  document.addEventListener("keydown", e => { if (e.key === "Escape") $("one").hidden = true; });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") { if (!$("one").hidden) $("one").hidden = true; else if (openId) { openId = null; render(); } } });
+
+  // re-check reminders every 30 seconds while the page is open
+  let sig = "";
+  setInterval(() => { if (drag) return; const s = tasks.filter(ringing).map(t => t.id).join(",") + dayKey(Date.now()); if (s !== sig) { sig = s; render(); } }, 30000);
 
   // ---------- start
   render();
@@ -236,7 +356,7 @@ li .x:hover { color: var(--ink); }
     const db = await use("db");
     store = db ? dbStore(db) : localStore();
     if (!db) $("note").textContent = "Saved on this device only.";
-    store.watch(list => { tasks = list; loaded = true; render(); }, () => { $("note").textContent = "Lost the connection. Reload the page."; });
+    store.watch(list => { tasks = list; loaded = true; if (!drag) render(); }, () => { $("note").textContent = "Lost the connection. Reload the page."; });
   })();
 })();
 </script>

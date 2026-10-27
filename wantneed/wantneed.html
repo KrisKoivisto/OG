@@ -19,100 +19,102 @@
 [hidden] { display: none !important; }
 html { background: var(--bg); }
 ::selection { background: var(--want); color: var(--bg); }
-body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 17px; line-height: 1.4;
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px 72px; }
-.wrap { max-width: 560px; margin: 0 auto; display: grid; gap: 16px; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.35;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 10px 56px; }
+.wrap { max-width: 520px; margin: 0 auto; display: grid; gap: 10px; }
 button, input { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--want); outline-offset: 2px; }
 
-.big { border: 2px solid var(--want); border-radius: 0; padding: 16px; background: transparent; color: var(--want); font-family: var(--f-display); font-size: 30px; letter-spacing: .03em; text-transform: uppercase; width: 100%; line-height: 1.1;
+.big { border: 2px solid var(--want); border-radius: 0; padding: 9px; background: transparent; color: var(--want); font-family: var(--f-display); font-size: 21px; letter-spacing: .03em; text-transform: uppercase; width: 100%; line-height: 1.1;
   box-shadow: 0 0 18px rgba(204,255,0,.18); transition: background .15s, color .15s, box-shadow .15s; }
 .big:hover, .big:active { background: var(--want); color: var(--bg); box-shadow: 0 0 28px rgba(204,255,0,.35); }
-.count { text-align: center; font: 400 11px var(--f-mono); letter-spacing: .3em; text-transform: uppercase; color: var(--muted); margin-top: -6px; }
+.count { text-align: center; font: 400 11px var(--f-mono); letter-spacing: .3em; text-transform: uppercase; color: var(--muted); margin-top: -4px; font-size: 10px; }
 .count:not(:empty)::before { content: "/// "; color: var(--want); }
 
 /* add box */
-form { background: var(--surface); border: 1px solid var(--border); padding: 12px; display: grid; gap: 12px; }
-.addrow { display: flex; gap: 8px; }
-#txt { flex: 1; min-width: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 0; padding: 12px; font-size: 18px; }
+form { background: var(--surface); border: 1px solid var(--border); padding: 8px; display: grid; gap: 8px; }
+.addrow { display: flex; gap: 6px; }
+#txt { flex: 1; min-width: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 0; padding: 8px 10px; font-size: 16px; }
 #txt:focus { border-color: var(--ink); outline: none; }
 #txt::placeholder { color: var(--dim); }
-.addbtn { border: 0; border-radius: 0; padding: 0 18px; background: var(--ink); color: var(--bg); font: 500 12px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; }
+.addbtn { border: 0; border-radius: 0; padding: 0 14px; background: var(--ink); color: var(--bg); font: 500 12px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; }
 .sl { display: grid; gap: 6px; }
 .ends { display: flex; justify-content: space-between; align-items: baseline; font: 500 11px var(--f-mono); text-transform: uppercase; letter-spacing: .3em; }
 .ends .w { color: var(--want); } .ends .n { color: var(--need-text); }
 .ends .mid { font-family: var(--f-display); font-size: 22px; letter-spacing: .03em; font-weight: 400; }
 
 /* faders: fill from the bottom, drag or tap anywhere on them */
-.faders { display: flex; gap: 6px; align-items: flex-end; flex: none; }
-.fd { display: grid; justify-items: center; gap: 3px; }
-.fader { position: relative; width: 26px; height: 64px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--border); cursor: ns-resize; touch-action: none; -webkit-user-select: none; user-select: none; }
+.faders { display: flex; gap: 4px; align-items: flex-end; flex: none; }
+.fd { display: grid; justify-items: center; gap: 2px; }
+.fader { position: relative; width: 18px; height: 40px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--border); cursor: ns-resize; touch-action: none; -webkit-user-select: none; user-select: none; }
 .fader i { position: absolute; left: 0; right: 0; bottom: 0; height: var(--v); }
 .fader i::before { content: ""; position: absolute; left: -3px; right: -3px; top: -2px; height: 4px; background: var(--ink); }
 .fader.need i { background: var(--need); } .fader.want i { background: var(--want); }
 .fader:focus { outline: none; }
 .fader:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.fd small { font: 500 9px var(--f-mono); letter-spacing: .15em; text-transform: uppercase; }
+.fd small { font: 500 8px var(--f-mono); letter-spacing: .15em; text-transform: uppercase; }
 .fd small.n { color: var(--need-text); } .fd small.w { color: var(--want); }
-.fader.big { width: 44px; height: 110px; }
-.addopts { display: flex; gap: 14px; align-items: flex-end; }
-.addopts .faders { gap: 12px; }
-.addopts .side { flex: 1; min-width: 0; display: grid; gap: 8px; align-content: end; }
-.toggle { border: 1px solid var(--border); background: var(--bg); color: var(--muted); padding: 11px 12px; font: 500 11px var(--f-mono); letter-spacing: .25em; text-transform: uppercase; text-align: left; }
+.fader.lg { width: 30px; height: 56px; }
+li .fader { height: 32px; }
+li .fd small { display: none; }
+.addopts { display: flex; gap: 10px; align-items: flex-end; }
+.addopts .faders { gap: 8px; }
+.addopts .side { flex: 1; min-width: 0; display: grid; gap: 6px; align-content: end; }
+.toggle { border: 1px solid var(--border); background: var(--bg); color: var(--muted); padding: 7px 10px; font: 500 10px var(--f-mono); letter-spacing: .25em; text-transform: uppercase; text-align: left; }
 .toggle[aria-pressed="true"] { background: var(--need); border-color: var(--need); color: #fff; }
-.hintline { font-size: 13px; color: var(--muted); line-height: 1.35; }
+.hintline { font-size: 12px; color: var(--muted); line-height: 1.35; }
 
 /* the list */
-.grp { display: grid; gap: 6px; }
-.grp h2 { margin: 6px 0 0; font-family: var(--f-display); font-weight: 400; font-size: 26px; letter-spacing: .03em; text-transform: uppercase; line-height: 1; }
+.grp { display: grid; gap: 4px; }
+.grp h2 { margin: 4px 0 0; font-family: var(--f-display); font-weight: 400; font-size: 16px; letter-spacing: .03em; text-transform: uppercase; line-height: 1; }
 .grp.need h2 { color: var(--need-text); } .grp.both h2 { color: var(--both); } .grp.want h2 { color: var(--want); }
-ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 li { background: var(--surface); border: 1px solid var(--border); display: flex; align-items: flex-start; }
-li .chk { flex: none; width: 50px; min-height: 50px; border: 0; background: transparent; display: grid; place-items: center; padding: 0; color: var(--dim); }
-li .chk span { width: 22px; height: 22px; border: 2px solid currentColor; display: block; }
+li .chk { flex: none; width: 38px; min-height: 40px; border: 0; background: transparent; display: grid; place-items: center; padding: 0; color: var(--dim); }
+li .chk span { width: 17px; height: 17px; border: 2px solid currentColor; display: block; }
 li .chk:hover { color: var(--want); } li .chk:hover span { background: currentColor; }
 li .mid { flex: 1; min-width: 0; padding-top: 13px; display: grid; gap: 2px; }
-li .t { overflow-wrap: anywhere; font-weight: 500; }
-li .x { flex: none; width: 44px; height: 50px; border: 0; background: transparent; color: var(--dim); font-size: 22px; padding: 0; }
+li .t { overflow-wrap: anywhere; font-weight: 500; font-size: 15px; line-height: 1.25; }
+li .x { flex: none; align-self: center !important; width: 32px; height: 40px; border: 0; background: transparent; color: var(--dim); font-size: 18px; padding: 0; }
 li .x:hover { color: var(--ink); }
-.empty { color: var(--muted); text-align: center; padding: 18px 8px; border: 1px dashed var(--border); }
+.empty { color: var(--muted); text-align: center; padding: 12px 8px; font-size: 14px; border: 1px dashed var(--border); }
 
 li { align-items: stretch; }
-li .mid { padding: 12px 0; cursor: pointer; align-content: start; }
-li .faders { padding: 8px 4px 8px 8px; }
+li .mid { padding: 10px 0; cursor: pointer; align-content: center; gap: 4px; }
+li .faders { padding: 5px 2px 5px 6px; align-items: center; }
 li .x { align-self: flex-start; }
 li.urgent { border-color: var(--need); }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.chip { font: 500 9.5px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; padding: 3px 6px; border: 1px solid var(--border); color: var(--muted); }
+.chip { font: 500 8.5px var(--f-mono); letter-spacing: .15em; text-transform: uppercase; padding: 2px 5px; border: 1px solid var(--border); color: var(--muted); }
 .chip.u { background: var(--need); border-color: var(--need); color: #fff; }
 .chip.r { color: var(--want); border-color: rgba(204,255,0,.4); }
 .chip.now { background: var(--want); border-color: var(--want); color: var(--bg); }
 .more { font: 500 10px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--dim); }
-.panel { background: var(--surface); border: 1px solid var(--border); border-top: 0; margin-top: -6px; padding: 12px; display: grid; gap: 10px; }
-.panel label { font: 500 10px var(--f-mono); letter-spacing: .25em; text-transform: uppercase; color: var(--muted); }
-.panel input[type="datetime-local"] { width: 100%; min-width: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 0; padding: 10px; font-size: 16px; }
-.prow { display: flex; gap: 8px; flex-wrap: wrap; }
-.pbtn { border: 1px solid var(--border); background: var(--bg); color: var(--ink); padding: 11px 12px; font: 500 11px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; text-decoration: none; display: inline-block; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-top: 0; margin-top: -4px; padding: 8px 10px 10px; display: grid; gap: 6px; }
+.panel label { font: 500 9px var(--f-mono); letter-spacing: .25em; text-transform: uppercase; color: var(--muted); }
+.panel input[type="datetime-local"] { flex: 1; width: auto; min-width: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 0; padding: 6px 8px; font-size: 16px; }
+.prow { display: flex; gap: 6px; flex-wrap: wrap; }
+.pbtn { border: 1px solid var(--border); background: var(--bg); color: var(--ink); padding: 7px 9px; font: 500 9.5px var(--f-mono); letter-spacing: .15em; text-transform: uppercase; text-decoration: none; display: inline-block; }
 .pbtn.cal { border-color: var(--want); color: var(--want); }
 .pbtn.ghost { border-color: transparent; color: var(--muted); }
 
 /* "just this one" screen */
-#one { position: fixed; inset: 0; background: var(--bg); z-index: 20; display: grid; align-content: center; justify-items: center; gap: 20px; text-align: center;
+#one { position: fixed; inset: 0; background: var(--bg); z-index: 20; display: grid; align-content: center; justify-items: center; gap: 14px; text-align: center;
   padding: calc(24px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px)); }
 #oneTag { font: 500 11px var(--f-mono); text-transform: uppercase; letter-spacing: .3em; }
 #oneTag:not(:empty)::before { content: "/// "; }
-#oneT { font-family: var(--f-display); font-size: 48px; line-height: 1.02; text-transform: uppercase; max-width: 16ch; overflow-wrap: anywhere; text-wrap: balance; letter-spacing: .01em; }
-#one .acts { display: grid; gap: 10px; width: 100%; max-width: 340px; }
-#one .acts button { border-radius: 0; padding: 16px; font: 500 13px var(--f-mono); letter-spacing: .25em; text-transform: uppercase; }
+#oneT { font-family: var(--f-display); font-size: 34px; line-height: 1.02; text-transform: uppercase; max-width: 16ch; overflow-wrap: anywhere; text-wrap: balance; letter-spacing: .01em; }
+#one .acts { display: grid; gap: 8px; width: 100%; max-width: 300px; }
+#one .acts button { border-radius: 0; padding: 12px; font: 500 11px var(--f-mono); letter-spacing: .25em; text-transform: uppercase; }
 #oneDone { border: 0; background: var(--want); color: var(--bg); box-shadow: 0 0 28px rgba(204,255,0,.3); }
 #oneSkip { border: 1px solid var(--border); background: var(--surface); }
 #oneBack { border: 0; background: transparent; color: var(--muted); }
 
 #toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 30; background: var(--ink); color: var(--bg);
-  padding: 12px 18px; font-size: 15px; font-weight: 500; display: flex; gap: 14px; align-items: center; max-width: calc(100% - 32px); }
+  padding: 9px 14px; font-size: 13px; font-weight: 500; display: flex; gap: 14px; align-items: center; max-width: calc(100% - 32px); }
 #toast button { border: 0; background: transparent; color: inherit; font-weight: 700; text-decoration: underline; padding: 0; }
-.note { font: 400 11px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--dim); text-align: center; }
+.note { font: 400 9px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--dim); text-align: center; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
@@ -127,11 +129,11 @@ li.urgent { border-color: var(--need); }
     </div>
     <div class="addopts">
       <div class="faders">
-        <div class="fd"><div class="fader need big" id="addNeed" role="slider" tabindex="0" aria-label="How much I need to" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" style="--v:50%"><i></i></div><small class="n">Need</small></div>
-        <div class="fd"><div class="fader want big" id="addWant" role="slider" tabindex="0" aria-label="How much I want to" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" style="--v:50%"><i></i></div><small class="w">Want</small></div>
+        <div class="fd"><div class="fader need lg" id="addNeed" role="slider" tabindex="0" aria-label="How much I need to" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" style="--v:50%"><i></i></div><small class="n">Need</small></div>
+        <div class="fd"><div class="fader want lg" id="addWant" role="slider" tabindex="0" aria-label="How much I want to" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" style="--v:50%"><i></i></div><small class="w">Want</small></div>
       </div>
       <div class="side">
-        <div class="hintline">Slide each one up or down. Tap any task to make it urgent or set a reminder.</div>
+        <div class="hintline">Slide up or down. Tap a task for urgent or a reminder.</div>
         <button class="toggle" type="button" id="addUrgent" aria-pressed="false">Urgent</button>
       </div>
     </div>
@@ -222,16 +224,17 @@ li.urgent { border-color: var(--need); }
   const fader = (kind, v, label, id) => `<div class="fd"><div class="fader ${kind}" role="slider" tabindex="0" data-f="${kind}" aria-label="${kind === "need" ? "Need" : "Want"}: ${esc(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v}" style="--v:${v}%"${id ? ` id="${id}"` : ""}><i></i></div><small class="${kind[0]}">${kind === "need" ? "N" : "W"}</small></div>`;
   function panel(t) {
     return `<li class="panel" data-id="${esc(t.id)}">
-      <div class="prow"><button class="toggle" type="button" data-a="urgent" aria-pressed="${!!t.urgent}">Urgent</button></div>
-      <label for="re_${esc(t.id)}">Remind me</label>
-      <input type="datetime-local" id="re_${esc(t.id)}" data-a="when" value="${t.remindAt ? toLocalInput(t.remindAt) : ""}">
-      ${t.remindAt ? `<div class="prow">
-        <a class="pbtn cal" href="${esc(calLink(t))}" target="_blank" rel="noopener">Add to iPhone Calendar</a>
+      <div class="prow">
+        <button class="toggle" type="button" data-a="urgent" aria-pressed="${!!t.urgent}">Urgent</button>
+        <input type="datetime-local" id="re_${esc(t.id)}" data-a="when" aria-label="Remind me" value="${t.remindAt ? toLocalInput(t.remindAt) : ""}">
+      </div>
+      <div class="prow">
+        ${t.remindAt ? `<a class="pbtn cal" href="${esc(calLink(t))}" target="_blank" rel="noopener">iPhone Calendar</a>
         <button class="pbtn" type="button" data-a="siri">Copy for Siri</button>
-        <button class="pbtn ghost" type="button" data-a="clearwhen">No reminder</button></div>
-        <div class="hintline">Calendar adds the event with an alert. Copy for Siri, then hold the side button and paste, or type it to Siri. That makes a real Reminder.</div>`
-        : `<div class="hintline">Pick a day and time. Then you can send it to your iPhone Calendar or to Reminders.</div>`}
-      <div class="prow"><button class="pbtn ghost" type="button" data-a="close">Close</button></div>
+        <button class="pbtn ghost" type="button" data-a="clearwhen">Clear time</button>` : ""}
+        <button class="pbtn ghost" type="button" data-a="close">Close</button>
+      </div>
+      <div class="hintline">${t.remindAt ? "Siri makes it a real Reminder: hold the side button and paste." : "Pick a time to send it to your calendar or Siri."}</div>
     </li>`;
   }
   function row(t) {

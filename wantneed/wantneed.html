@@ -111,6 +111,39 @@ li.urgent { border-color: var(--need); }
 #oneSkip { border: 1px solid var(--border); background: var(--surface); }
 #oneBack { border: 0; background: transparent; color: var(--muted); }
 
+/* top bar, tabs */
+.topbar { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 6px; }
+.addt { border: 0; border-radius: 0; background: var(--ink); color: var(--bg); padding: 0 14px; font: 500 11px var(--f-mono); letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+.addt[aria-expanded="true"] { background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--border); }
+.tabs { display: flex; gap: 18px; align-items: center; border-bottom: 1px solid var(--border); }
+.tabs button { border: 0; background: transparent; padding: 6px 0; margin-bottom: -1px; border-bottom: 2px solid transparent; font: 500 10px var(--f-mono); letter-spacing: .25em; text-transform: uppercase; color: var(--dim); }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--want); }
+.tabs b { font-weight: 500; color: var(--muted); }
+.tabs .count { margin: 0 0 0 auto; text-align: right; letter-spacing: .15em; }
+
+/* stream of consciousness */
+#streamView { display: grid; gap: 8px; }
+.sform { background: var(--surface); border: 1px solid var(--border); padding: 8px; display: grid; gap: 6px; }
+#sTxt { width: 100%; min-width: 0; min-height: 38px; resize: none; overflow: hidden; background: var(--bg); border: 1px solid var(--border); border-radius: 0; padding: 8px 10px; font: 400 16px/1.35 var(--f-body); color: var(--ink); }
+#sTxt:focus { border-color: var(--ink); outline: none; }
+#sTxt::placeholder { color: var(--dim); }
+.srow { display: flex; gap: 6px; align-items: center; }
+.srow .hintline { flex: 1; min-width: 0; font-size: 11px; }
+.srow .addbtn { padding: 8px 14px; }
+.vh { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+#sPrev { position: relative; justify-self: start; }
+#sPrev img { max-height: 90px; width: auto; display: block; }
+#sPrev button { position: absolute; top: 2px; right: 2px; border: 0; background: var(--bg); color: var(--ink); width: 24px; height: 24px; padding: 0; }
+li.th { align-items: flex-start; padding-left: 10px; }
+.th .tb { flex: 1; min-width: 0; display: grid; gap: 5px; padding: 8px 0; }
+.th .tt { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; line-height: 1.35; }
+.th img { max-width: 100%; max-height: 200px; width: auto; display: block; cursor: zoom-in; background: var(--bg); }
+.tm { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font: 500 9px var(--f-mono); letter-spacing: .15em; text-transform: uppercase; color: var(--dim); }
+.tm button { border: 0; background: transparent; padding: 0; font: inherit; letter-spacing: inherit; text-transform: inherit; color: var(--want); }
+.tm .on { color: var(--muted); }
+#picView { position: fixed; inset: 0; z-index: 25; background: rgba(0,0,0,.92); display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); cursor: zoom-out; }
+#picView img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
 #toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 30; background: var(--ink); color: var(--bg);
   padding: 9px 14px; font-size: 13px; font-weight: 500; display: flex; gap: 14px; align-items: center; max-width: calc(100% - 32px); }
 #toast button { border: 0; background: transparent; color: inherit; font-weight: 700; text-decoration: underline; padding: 0; }
@@ -119,13 +152,15 @@ li.urgent { border-color: var(--need); }
 </style>
 
 <div class="wrap">
-  <button class="big" id="go" type="button">What should I do?</button>
-  <div class="count" id="count"></div>
+  <div class="topbar">
+    <button class="big" id="go" type="button">What should I do?</button>
+    <button class="addt" id="addToggle" type="button" aria-expanded="false" aria-controls="add">+ Add this</button>
+  </div>
 
-  <form id="add" autocomplete="off">
+  <form id="add" autocomplete="off" hidden>
     <div class="addrow">
       <input id="txt" type="text" placeholder="Something on your mind…" aria-label="New thing">
-      <button class="addbtn" type="submit">Add</button>
+      <button class="addbtn" type="submit">Save</button>
     </div>
     <div class="addopts">
       <div class="faders">
@@ -139,9 +174,31 @@ li.urgent { border-color: var(--need); }
     </div>
   </form>
 
-  <div id="list"></div>
+  <nav class="tabs" id="tabs">
+    <button type="button" data-tab="todo" aria-selected="true">To do <b id="todoN"></b></button>
+    <button type="button" data-tab="stream" aria-selected="false">Stream <b id="streamN"></b></button>
+    <span class="count" id="count"></span>
+  </nav>
+
+  <div id="todoView"><div id="list"></div></div>
+
+  <section id="streamView" hidden>
+    <form class="sform" id="sform" autocomplete="off">
+      <textarea id="sTxt" rows="1" enterkeyhint="done" placeholder="What's in your head?" aria-label="Thought"></textarea>
+      <div id="sPrev" hidden></div>
+      <div class="srow">
+        <label class="pbtn" id="picBtn" for="sPic" hidden>+ Pic</label>
+        <input class="vh" id="sPic" type="file" accept="image/*" tabindex="-1">
+        <span class="hintline">Or tap the mic on your keyboard and talk.</span>
+        <button class="addbtn" type="submit">Save</button>
+      </div>
+    </form>
+    <ul id="feed"></ul>
+  </section>
   <div class="note" id="note"></div>
 </div>
+
+<div id="picView" hidden><img id="picImg" alt=""></div>
 
 <div id="one" hidden>
   <div id="oneTag"></div>
@@ -175,13 +232,13 @@ li.urgent { border-color: var(--need); }
 
   // ---------- saving: your account when available, otherwise this device
   const use = n => (window.claude && typeof window.claude.use === "function") ? window.claude.use(n) : Promise.resolve(null);
-  function localStore() {
-    let list = []; try { list = JSON.parse(localStorage.getItem("wn.simple") || "[]"); } catch {}
-    const w = () => { try { localStorage.setItem("wn.simple", JSON.stringify(list)); } catch {} };
+  function localStore(key) {
+    let list = []; try { list = JSON.parse(localStorage.getItem(key) || "[]"); } catch {}
+    const w = () => { try { localStorage.setItem(key, JSON.stringify(list)); } catch {} };
     return { watch(cb) { cb(list.slice()); }, async save(t) { list = list.filter(x => x.id !== t.id).concat([t]); w(); }, async remove(id) { list = list.filter(x => x.id !== id); w(); } };
   }
-  function dbStore(db) {
-    const col = db.collection("tasks"), q = {};
+  function dbStore(db, name) {
+    const col = db.collection(name), q = {};
     const chain = (id, fn) => (q[id] = (q[id] || Promise.resolve()).then(fn, fn));
     return {
       watch(cb, err) { col.onSnapshot(s => cb(s.docs.filter(d => d.exists).map(d => ({ ...d.data(), id: d.id }))), err); },
@@ -257,6 +314,7 @@ li.urgent { border-color: var(--need); }
     }
     const today = dayKey(Date.now()), n = tasks.filter(t => t.done && t.doneAt && dayKey(t.doneAt) === today).length;
     $("count").textContent = n ? n + " done today" : "";
+    $("todoN").textContent = items.length || "";
     const ring = tasks.filter(ringing).length; document.title = ring ? "(" + ring + ") Want / Need" : "Want / Need";
   }
   function finish(t) { const was = { ...t }; if (openId === t.id) openId = null; save({ ...t, done: true, doneAt: Date.now() }); toast("Done: " + t.title, () => save(was)); }
@@ -347,19 +405,107 @@ li.urgent { border-color: var(--need); }
   $("oneDone").addEventListener("click", () => { if (current) finish(current); skipped = []; show(); });
   $("oneSkip").addEventListener("click", () => { if (current) skipped.push(current.id); else skipped = []; show(); });
   $("oneBack").addEventListener("click", () => { $("one").hidden = true; });
-  document.addEventListener("keydown", e => { if (e.key === "Escape") { if (!$("one").hidden) $("one").hidden = true; else if (openId) { openId = null; render(); } } });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") { if (!$("picView").hidden) $("picView").hidden = true; else if (!$("one").hidden) $("one").hidden = true; else if (!$("add").hidden) setAddOpen(false); else if (openId) { openId = null; render(); } } });
 
   // re-check reminders every 30 seconds while the page is open
   let sig = "";
   setInterval(() => { if (drag) return; const s = tasks.filter(ringing).map(t => t.id).join(",") + dayKey(Date.now()); if (s !== sig) { sig = s; render(); } }, 30000);
 
+  // ---------- "Add this" opens and closes the add box
+  function setAddOpen(open) {
+    $("add").hidden = !open; $("addToggle").setAttribute("aria-expanded", String(open)); $("addToggle").textContent = open ? "Close" : "+ Add this";
+    if (open) { setTab("todo"); $("txt").focus(); }
+  }
+  $("addToggle").addEventListener("click", () => setAddOpen($("add").hidden));
+
+  // ---------- tabs
+  let tab = "todo"; try { tab = localStorage.getItem("wn.tab") === "stream" ? "stream" : "todo"; } catch {}
+  function setTab(t) {
+    tab = t; try { localStorage.setItem("wn.tab", t); } catch {}
+    document.querySelectorAll("#tabs [data-tab]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
+    $("todoView").hidden = t !== "todo"; $("streamView").hidden = t !== "stream";
+  }
+  $("tabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) setTab(b.dataset.tab); });
+  setTab(tab);
+
+  // ---------- stream of consciousness: thoughts, dictation (the keyboard mic), photos
+  let thoughts = [], sstore = null, assets = null, pending = null;
+  function saveThought(t) { thoughts = thoughts.filter(x => x.id !== t.id).concat([t]); renderFeed(); sstore && sstore.save(t).catch(oops); }
+  function delThought(id) { thoughts = thoughts.filter(x => x.id !== id); renderFeed(); sstore && sstore.remove(id).catch(oops); }
+  const stamp = ms => { const d = new Date(ms); return (dayKey(ms) === dayKey(Date.now()) ? "Today" : d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })) + " " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }); };
+  function renderFeed() {
+    const list = thoughts.slice().sort((a, b) => (b.created || 0) - (a.created || 0));
+    $("feed").innerHTML = list.length ? list.map(t => `<li class="th" data-id="${esc(t.id)}"><div class="tb">
+        ${t.text ? `<div class="tt">${esc(t.text)}</div>` : ""}
+        ${t.img && /^[A-Za-z0-9_-]{8,64}$/.test(t.img) ? `<img src="/_blob/${t.img}" alt="" loading="lazy" data-a="zoom">` : ""}
+        <div class="tm"><span>${esc(stamp(t.created || Date.now()))}</span>${t.tasked ? `<span class="on">On your list</span>` : `<button type="button" data-a="totask">Make it a task</button>`}</div>
+      </div><button class="x" type="button" data-a="sdel" aria-label="Delete thought">×</button></li>`).join("")
+      : `<li class="empty" style="border:1px dashed var(--border);background:transparent;display:block">${loaded ? "Dump anything here. Two words is plenty." : "Loading…"}</li>`;
+    $("streamN").textContent = thoughts.length || "";
+  }
+  const grow = () => { const t = $("sTxt"); t.style.height = "auto"; t.style.height = t.scrollHeight + 2 + "px"; };
+  $("sTxt").addEventListener("input", grow);
+  $("sTxt").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("sform").requestSubmit(); } });
+  function clearPic() { pending = null; $("sPrev").hidden = true; $("sPrev").innerHTML = ""; $("sPic").value = ""; }
+  $("sPic").addEventListener("change", () => {
+    const f = $("sPic").files && $("sPic").files[0]; if (!f) return;
+    pending = f; $("sPrev").innerHTML = `<img alt="" src="${URL.createObjectURL(f)}"><button type="button" aria-label="Remove photo">×</button>`; $("sPrev").hidden = false;
+  });
+  $("sPrev").addEventListener("click", e => { if (e.target.closest("button")) clearPic(); });
+  // shrink big phone photos before saving them
+  async function shrink(file) {
+    try {
+      const url = URL.createObjectURL(file);
+      const img = await new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = url; });
+      const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      const blob = await new Promise(ok => c.toBlob(ok, "image/jpeg", 0.85));
+      if (blob && blob.size) return blob;
+    } catch {}
+    return /^image\/(jpeg|png|webp|gif)$/.test(file.type) ? file : null;
+  }
+  let saving = false;
+  $("sform").addEventListener("submit", async e => {
+    e.preventDefault(); if (saving) return;
+    const text = $("sTxt").value.trim(); if (!text && !pending) { $("sTxt").focus(); return; }
+    let img = null;
+    if (pending && !assets) { toast("Photos can't be saved here. Open the app in Claude to add them."); return; }
+    if (pending && assets) {
+      saving = true; toast("Saving photo…");
+      try { const blob = await shrink(pending); if (!blob) throw { code: "unsupported_type" }; img = (await assets.upload(blob, { type: blob.type || "image/jpeg" })).id; }
+      catch (err) { saving = false; toast(err && err.code === "too_large" ? "That photo is too big." : err && err.code === "unsupported_type" ? "That photo type won't save. Try a screenshot of it." : "The photo didn't save. Try again."); return; }
+      saving = false; $("toast").hidden = true;
+    }
+    saveThought({ id: "s_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text, img, tasked: false, created: Date.now() });
+    $("sTxt").value = ""; grow(); clearPic(); $("sTxt").focus();
+  });
+  $("feed").addEventListener("click", e => {
+    const b = e.target.closest("[data-a]"), li = e.target.closest("li[data-id]"); if (!b || !li) return;
+    const t = thoughts.find(x => x.id === li.dataset.id); if (!t) return;
+    if (b.dataset.a === "zoom") { $("picImg").src = "/_blob/" + t.img; $("picView").hidden = false; }
+    else if (b.dataset.a === "totask") {
+      save({ id: "t_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: (t.text || "Photo idea").slice(0, 140), need: 50, want: 50, urgent: false, remindAt: null, done: false, doneAt: null, created: Date.now() });
+      saveThought({ ...t, tasked: true }); toast("Added to your to-do list");
+    } else if (b.dataset.a === "sdel") {
+      const was = { ...t }; delThought(t.id); toast("Deleted", () => saveThought(was));
+      // the photo itself goes once the undo is gone
+      if (t.img && assets) setTimeout(() => { if (!thoughts.some(x => x.id === t.id)) assets.delete(t.img).catch(() => {}); }, 7000);
+    }
+  });
+  $("picView").addEventListener("click", () => { $("picView").hidden = true; });
+
   // ---------- start
-  render();
+  render(); renderFeed();
   (async () => {
-    const db = await use("db");
-    store = db ? dbStore(db) : localStore();
+    const [db, a] = await Promise.all([use("db"), use("assets")]);
+    assets = a; $("picBtn").hidden = !assets;
+    store = db ? dbStore(db, "tasks") : localStore("wn.simple");
+    sstore = db ? dbStore(db, "thoughts") : localStore("wn.thoughts");
     if (!db) $("note").textContent = "Saved on this device only.";
-    store.watch(list => { tasks = list; loaded = true; if (!drag) render(); }, () => { $("note").textContent = "Lost the connection. Reload the page."; });
+    const lost = () => { $("note").textContent = "Lost the connection. Reload the page."; };
+    store.watch(list => { tasks = list; loaded = true; if (!drag) render(); }, lost);
+    sstore.watch(list => { thoughts = list; renderFeed(); }, lost);
   })();
 })();
 </script>

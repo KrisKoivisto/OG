@@ -121,6 +121,35 @@ li.urgent { border-color: var(--need); }
 .tabs b { font-weight: 500; color: var(--muted); }
 .tabs .count { margin: 0 0 0 auto; text-align: right; letter-spacing: .15em; }
 
+/* quick view: just what matters right now */
+body.quick .full { display: none !important; }
+.qbtn { border: 0; background: transparent; padding: 6px 0; font: 500 10px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--want); white-space: nowrap; }
+.tabs .qbtn { margin-left: 4px; }
+.tabs .count:empty + .qbtn { margin-left: auto; }
+#quickView { display: grid; gap: 8px; }
+.qhead { display: flex; justify-content: space-between; align-items: center; }
+.qlab { font: 500 10px var(--f-mono); letter-spacing: .3em; text-transform: uppercase; color: var(--muted); }
+.qlab::before { content: "/// "; color: var(--want); }
+.qnow { border: 2px solid var(--want); box-shadow: 0 0 18px rgba(204,255,0,.15); padding: 12px; display: grid; gap: 10px; }
+.qnow .tag { font: 500 10px var(--f-mono); letter-spacing: .25em; text-transform: uppercase; }
+.qnow .tt { font: 400 28px/1.05 var(--f-display); text-transform: uppercase; overflow-wrap: anywhere; text-wrap: balance; }
+.qnow .row { display: flex; gap: 6px; }
+.qnow .row button { flex: 1; border: 1px solid var(--border); background: var(--surface); color: var(--ink); padding: 10px; font: 500 10px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; }
+.qnow .row .go { background: var(--want); border-color: var(--want); color: var(--bg); }
+.qnow .none { color: var(--muted); font-size: 14px; }
+#qNext li .mid { cursor: default; }
+.qform { display: flex; gap: 6px; }
+.qform input { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 0; padding: 8px 10px; font-size: 16px; }
+.qform input:focus { border-color: var(--ink); outline: none; }
+.qform .addbtn { padding: 0 10px; font-size: 10px; letter-spacing: .15em; }
+.qform .addbtn.alt { background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--border); }
+.qhelp { font-size: 13px; color: var(--muted); }
+.qhelp summary { cursor: pointer; font: 500 10px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--dim); padding: 4px 0; }
+.qhelp ol { margin: 6px 0; padding-left: 18px; display: grid; gap: 2px; }
+.qhelp ol li { display: list-item; background: none; border: 0; }
+.qlink { display: flex; gap: 6px; align-items: center; }
+.qlink span { flex: 1; min-width: 0; overflow-wrap: anywhere; font: 400 11px var(--f-mono); color: var(--ink); user-select: all; -webkit-user-select: all; background: var(--surface); padding: 7px 8px; border: 1px solid var(--border); }
+
 /* stream of consciousness */
 #streamView { display: grid; gap: 8px; }
 .sform { background: var(--surface); border: 1px solid var(--border); padding: 8px; display: grid; gap: 6px; }
@@ -152,12 +181,12 @@ li.th { align-items: flex-start; padding-left: 10px; }
 </style>
 
 <div class="wrap">
-  <div class="topbar">
+  <div class="topbar full">
     <button class="big" id="go" type="button">What should I do?</button>
     <button class="addt" id="addToggle" type="button" aria-expanded="false" aria-controls="add">+ Add this</button>
   </div>
 
-  <form id="add" autocomplete="off" hidden>
+  <form id="add" class="full" autocomplete="off" hidden>
     <div class="addrow">
       <input id="txt" type="text" placeholder="Something on your mind…" aria-label="New thing">
       <button class="addbtn" type="submit">Save</button>
@@ -174,15 +203,16 @@ li.th { align-items: flex-start; padding-left: 10px; }
     </div>
   </form>
 
-  <nav class="tabs" id="tabs">
+  <nav class="tabs full" id="tabs">
     <button type="button" data-tab="todo" aria-selected="true">To do <b id="todoN"></b></button>
     <button type="button" data-tab="stream" aria-selected="false">Stream <b id="streamN"></b></button>
     <span class="count" id="count"></span>
+    <button type="button" class="qbtn" id="toQuick">Quick view</button>
   </nav>
 
-  <div id="todoView"><div id="list"></div></div>
+  <div id="todoView" class="full"><div id="list"></div></div>
 
-  <section id="streamView" hidden>
+  <section id="streamView" class="full" hidden>
     <form class="sform" id="sform" autocomplete="off">
       <textarea id="sTxt" rows="1" enterkeyhint="done" placeholder="What's in your head?" aria-label="Thought"></textarea>
       <div id="sPrev" hidden></div>
@@ -194,6 +224,26 @@ li.th { align-items: flex-start; padding-left: 10px; }
       </div>
     </form>
     <ul id="feed"></ul>
+  </section>
+  <section id="quickView" hidden>
+    <div class="qhead"><span class="qlab">Right now</span><button type="button" class="qbtn" id="toFull">Full list</button></div>
+    <div class="qnow" id="qNow"></div>
+    <div class="qlab" id="qNextLab">Next up</div>
+    <ul id="qNext"></ul>
+    <form class="qform" id="qform" autocomplete="off">
+      <input id="qTxt" type="text" enterkeyhint="done" placeholder="Quick add…" aria-label="Quick add">
+      <button type="submit" class="addbtn" data-k="todo">To do</button>
+      <button type="submit" class="addbtn alt" data-k="stream">Stream</button>
+    </form>
+    <details class="qhelp">
+      <summary>Put this on your Home Screen</summary>
+      <ol>
+        <li>Copy this link and open it in Safari.</li>
+        <li>Tap Share, then Add to Home Screen.</li>
+        <li>Turn off Open as Web App so you stay signed in.</li>
+      </ol>
+      <div class="qlink"><span id="qLink">https://claude.ai/artifact/GM51pFBUJuhkqy6ng67yhQ#quick</span><button type="button" class="pbtn" id="qCopy">Copy</button></div>
+    </details>
   </section>
   <div class="note" id="note"></div>
 </div>
@@ -315,6 +365,7 @@ li.th { align-items: flex-start; padding-left: 10px; }
     const today = dayKey(Date.now()), n = tasks.filter(t => t.done && t.doneAt && dayKey(t.doneAt) === today).length;
     $("count").textContent = n ? n + " done today" : "";
     $("todoN").textContent = items.length || "";
+    if (typeof renderQuick === "function") renderQuick();
     const ring = tasks.filter(ringing).length; document.title = ring ? "(" + ring + ") Want / Need" : "Want / Need";
   }
   function finish(t) { const was = { ...t }; if (openId === t.id) openId = null; save({ ...t, done: true, doneAt: Date.now() }); toast("Done: " + t.title, () => save(was)); }
@@ -494,6 +545,47 @@ li.th { align-items: flex-start; padding-left: 10px; }
     }
   });
   $("picView").addEventListener("click", () => { $("picView").hidden = true; });
+
+  // ---------- quick view (open the link with #quick to land here)
+  let quick = false; try { quick = location.hash === "#quick"; } catch {}
+  let qSkip = [];
+  function setQuick(on) { quick = on; document.body.classList.toggle("quick", on); $("quickView").hidden = !on; if (on) { qSkip = []; renderQuick(); } }
+  function renderQuick() {
+    if (!quick) return;
+    const keep = skipped; skipped = qSkip; const c = choose(); skipped = keep;
+    $("qNow").innerHTML = c
+      ? `<div class="tag" style="color:${c.why === "You did a need. Have a want." ? "var(--want)" : groupColor[groupOf(c.t)]}">${esc(c.why)}</div><div class="tt">${esc(c.t.title)}</div>
+         <div class="row"><button type="button" class="go" data-q="done" data-id="${esc(c.t.id)}">Done</button><button type="button" data-q="skip" data-id="${esc(c.t.id)}">Not this one</button></div>`
+      : `<div class="none">${loaded ? (openTasks().length ? "You passed on everything. <button type=\"button\" class=\"qbtn\" data-q=\"reset\">Start over</button>" : "Nothing on the list. You're free.") : "Loading…"}</div>`;
+    const next = openTasks().filter(t => !c || t.id !== c.t.id).slice(0, 5);
+    $("qNextLab").hidden = !next.length;
+    $("qNext").innerHTML = next.map(t => { const chips = []; if (t.urgent) chips.push(`<span class="chip u">Urgent</span>`); if (t.remindAt) chips.push(`<span class="chip ${ringing(t) ? "now" : "r"}">${ringing(t) ? "Now" : esc(fmtWhen(t.remindAt))}</span>`);
+      return `<li data-id="${esc(t.id)}" class="${t.urgent ? "urgent" : ""}"><button class="chk" type="button" data-q="done" data-id="${esc(t.id)}" aria-label="Done: ${esc(t.title)}"><span></span></button><div class="mid"><span class="t">${esc(t.title)}</span>${chips.length ? `<div class="chips">${chips.join("")}</div>` : ""}</div></li>`; }).join("");
+  }
+  $("quickView").addEventListener("click", e => {
+    const b = e.target.closest("[data-q]"); if (!b) return;
+    const t = tasks.find(x => x.id === b.dataset.id);
+    if (b.dataset.q === "done" && t) finish(t);
+    else if (b.dataset.q === "skip" && t) { qSkip.push(t.id); renderQuick(); }
+    else if (b.dataset.q === "reset") { qSkip = []; renderQuick(); }
+  });
+  $("toQuick").addEventListener("click", () => setQuick(true));
+  $("toFull").addEventListener("click", () => setQuick(false));
+  $("qform").addEventListener("submit", e => {
+    e.preventDefault();
+    const v = $("qTxt").value.trim(); if (!v) { $("qTxt").focus(); return; }
+    const k = (e.submitter && e.submitter.dataset.k) || "todo";
+    if (k === "stream") { saveThought({ id: "s_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text: v, img: null, tasked: false, created: Date.now() }); toast("Saved to Stream"); }
+    else { save({ id: "t_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: v, need: 50, want: 50, urgent: false, remindAt: null, done: false, doneAt: null, created: Date.now() }); toast("Added to your list"); }
+    $("qTxt").value = "";
+  });
+  $("qCopy").addEventListener("click", async () => {
+    const s = $("qLink").textContent;
+    try { await navigator.clipboard.writeText(s); toast("Link copied"); }
+    catch { const r = document.createRange(); r.selectNodeContents($("qLink")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast("Selected. Tap Copy."); }
+  });
+  setQuick(quick);
+  window.addEventListener("hashchange", () => { try { if (location.hash === "#quick") setQuick(true); } catch {} });
 
   // ---------- start
   render(); renderFeed();

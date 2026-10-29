@@ -238,9 +238,9 @@ li.th { align-items: flex-start; padding-left: 10px; }
     <details class="qhelp">
       <summary>Put this on your Home Screen</summary>
       <ol>
-        <li>Copy this link and open it in Safari.</li>
+        <li id="qStep1">Copy this link and open it in Safari.</li>
         <li>Tap Share, then Add to Home Screen.</li>
-        <li>Turn off Open as Web App so you stay signed in.</li>
+        <li id="qStep3">Turn off Open as Web App so you stay signed in.</li>
       </ol>
       <div class="qlink"><span id="qLink">https://claude.ai/artifact/GM51pFBUJuhkqy6ng67yhQ#quick</span><button type="button" class="pbtn" id="qCopy">Copy</button></div>
     </details>
@@ -481,6 +481,7 @@ li.th { align-items: flex-start; padding-left: 10px; }
 
   // ---------- stream of consciousness: thoughts, dictation (the keyboard mic), photos
   let thoughts = [], sstore = null, assets = null, pending = null;
+  const picUrls = {};
   function saveThought(t) { thoughts = thoughts.filter(x => x.id !== t.id).concat([t]); renderFeed(); sstore && sstore.save(t).catch(oops); }
   function delThought(id) { thoughts = thoughts.filter(x => x.id !== id); renderFeed(); sstore && sstore.remove(id).catch(oops); }
   const stamp = ms => { const d = new Date(ms); return (dayKey(ms) === dayKey(Date.now()) ? "Today" : d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })) + " " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }); };
@@ -488,11 +489,17 @@ li.th { align-items: flex-start; padding-left: 10px; }
     const list = thoughts.slice().sort((a, b) => (b.created || 0) - (a.created || 0));
     $("feed").innerHTML = list.length ? list.map(t => `<li class="th" data-id="${esc(t.id)}"><div class="tb">
         ${t.text ? `<div class="tt">${esc(t.text)}</div>` : ""}
-        ${t.img && /^[A-Za-z0-9_-]{8,64}$/.test(t.img) ? `<img src="/_blob/${t.img}" alt="" loading="lazy" data-a="zoom">` : ""}
+        ${t.img && /^[A-Za-z0-9_-]{8,64}$/.test(t.img) ? (t.img[0] === "L" ? `<img data-local="${t.img}" alt="" data-a="zoom">` : `<img src="/_blob/${t.img}" alt="" loading="lazy" data-a="zoom">`) : ""}
         <div class="tm"><span>${esc(stamp(t.created || Date.now()))}</span>${t.tasked ? `<span class="on">On your list</span>` : `<button type="button" data-a="totask">Make it a task</button>`}</div>
       </div><button class="x" type="button" data-a="sdel" aria-label="Delete thought">×</button></li>`).join("")
       : `<li class="empty" style="border:1px dashed var(--border);background:transparent;display:block">${loaded ? "Dump anything here. Two words is plenty." : "Loading…"}</li>`;
     $("streamN").textContent = thoughts.length || "";
+    // photos kept on this phone (the standalone app) load from its own storage
+    $("feed").querySelectorAll("img[data-local]").forEach(async el => {
+      const id = el.dataset.local;
+      if (!picUrls[id] && assets && assets.get) { const b = await assets.get(id).catch(() => null); if (b) picUrls[id] = URL.createObjectURL(b); }
+      if (picUrls[id]) el.src = picUrls[id];
+    });
   }
   const grow = () => { const t = $("sTxt"); t.style.height = "auto"; t.style.height = t.scrollHeight + 2 + "px"; };
   $("sTxt").addEventListener("input", grow);
@@ -524,7 +531,7 @@ li.th { align-items: flex-start; padding-left: 10px; }
     if (pending && !assets) { toast("Photos can't be saved here. Open the app in Claude to add them."); return; }
     if (pending && assets) {
       saving = true; toast("Saving photo…");
-      try { const blob = await shrink(pending); if (!blob) throw { code: "unsupported_type" }; img = (await assets.upload(blob, { type: blob.type || "image/jpeg" })).id; }
+      try { const blob = await shrink(pending); if (!blob) throw { code: "unsupported_type" }; const up = await assets.upload(blob, { type: blob.type || "image/jpeg" }); img = up.id; if (img[0] === "L") picUrls[img] = up.url; }
       catch (err) { saving = false; toast(err && err.code === "too_large" ? "That photo is too big." : err && err.code === "unsupported_type" ? "That photo type won't save. Try a screenshot of it." : "The photo didn't save. Try again."); return; }
       saving = false; $("toast").hidden = true;
     }
@@ -534,7 +541,7 @@ li.th { align-items: flex-start; padding-left: 10px; }
   $("feed").addEventListener("click", e => {
     const b = e.target.closest("[data-a]"), li = e.target.closest("li[data-id]"); if (!b || !li) return;
     const t = thoughts.find(x => x.id === li.dataset.id); if (!t) return;
-    if (b.dataset.a === "zoom") { $("picImg").src = "/_blob/" + t.img; $("picView").hidden = false; }
+    if (b.dataset.a === "zoom") { const src = t.img[0] === "L" ? picUrls[t.img] : "/_blob/" + t.img; if (src) { $("picImg").src = src; $("picView").hidden = false; } }
     else if (b.dataset.a === "totask") {
       save({ id: "t_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: (t.text || "Photo idea").slice(0, 140), need: 50, want: 50, urgent: false, remindAt: null, done: false, doneAt: null, created: Date.now() });
       saveThought({ ...t, tasked: true }); toast("Added to your to-do list");
@@ -587,17 +594,44 @@ li.th { align-items: flex-start; padding-left: 10px; }
   setQuick(quick);
   window.addEventListener("hashchange", () => { try { if (location.hash === "#quick") setQuick(true); } catch {} });
 
+  // ---------- standalone app: no Claude around it, so everything lives on this phone
+  const STANDALONE = !(window.claude && typeof window.claude.use === "function");
+  function localAssets() {
+    if (!("indexedDB" in window)) return null;
+    let dbp = null;
+    const open = () => dbp || (dbp = new Promise((ok, bad) => { const r = indexedDB.open("wn-photos", 1); r.onupgradeneeded = () => r.result.createObjectStore("p"); r.onsuccess = () => ok(r.result); r.onerror = () => bad(r.error); }));
+    const run = async (mode, fn) => { const d = await open(); return new Promise((ok, bad) => { const t = d.transaction("p", mode); const req = fn(t.objectStore("p")); t.oncomplete = () => ok(req && req.result); t.onerror = () => bad(t.error); }); };
+    return {
+      async upload(blob) { const id = "L" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); await run("readwrite", s => s.put(blob, id)); return { id, url: URL.createObjectURL(blob) }; },
+      async delete(id) { await run("readwrite", s => s.delete(id)); return { deleted: true }; },
+      get(id) { return run("readonly", s => s.get(id)); }
+    };
+  }
+  if (STANDALONE) {
+    try { if (/^https?:$/.test(location.protocol)) $("qLink").textContent = location.origin + location.pathname + "#quick"; } catch {}
+    $("qStep1").textContent = "Open this link in Safari.";
+    $("qStep3").textContent = "Leave Open as Web App on. It opens like a real app.";
+    try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch {}
+    try { if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {}); } catch {}
+  }
+
   // ---------- start
   render(); renderFeed();
   (async () => {
     const [db, a] = await Promise.all([use("db"), use("assets")]);
-    assets = a; $("picBtn").hidden = !assets;
+    assets = a || (STANDALONE ? localAssets() : null); $("picBtn").hidden = !assets;
     store = db ? dbStore(db, "tasks") : localStore("wn.simple");
     sstore = db ? dbStore(db, "thoughts") : localStore("wn.thoughts");
-    if (!db) $("note").textContent = "Saved on this device only.";
+    if (!db) $("note").textContent = STANDALONE ? "Saved on this phone." : "Saved on this device only.";
     const lost = () => { $("note").textContent = "Lost the connection. Reload the page."; };
     store.watch(list => { tasks = list; loaded = true; if (!drag) render(); }, lost);
     sstore.watch(list => { thoughts = list; renderFeed(); }, lost);
+    // first time the standalone app opens, bring over the list from Claude
+    let seeded = true; try { seeded = !!localStorage.getItem("wn.seeded"); localStorage.setItem("wn.seeded", "1"); } catch {}
+    if (STANDALONE && !db && !seeded && !tasks.length) {
+      [["t_mvqcvg5gxmxt", "Oil change", 100, 0, 1793085605764], ["t_mvqcvpweq8lz", "Frankie vet", 0, 0, 1793085618398], ["t_mvqcw2tq7r4x", "Fix bike", 0, 100, 1793085635150]]
+        .forEach(([id, title, need, want, created]) => save({ id, title, need, want, urgent: false, remindAt: null, done: false, doneAt: null, created }));
+    }
   })();
 })();
 </script>

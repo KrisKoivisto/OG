@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Want / Need">
+<meta name="theme-color" content="#09090B">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Want / Need</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column. Big button, add box, then one list grouped Urgent, Both, Need, Want. Every task has two up-and-down faders: red Need, acid Want.
+   Colors and type are kriskoivisto.com: near-black zinc, acid green (#CCFF00), red (#E03A3E), cement; Anton, Manrope, JetBrains Mono.
+   Square corners and spaced-out mono labels, like the site. Always dark, like the site. */
+:root {
+  --bg: #09090B; --surface: #18181B; --border: #27272A; --ink: #F4F4F5; --muted: #A1A1AA; --dim: #71717A;
+  --want: #CCFF00; --need: #E03A3E; --need-text: #F0575B; --both: #B9B9BD;
+  --f-display: Anton, Impact, "Arial Narrow", sans-serif;
+  --f-body: Manrope, -apple-system, BlinkMacSystemFont, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { background: var(--bg); }
+::selection { background: var(--want); color: var(--bg); }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.35;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 10px 56px; }
+.wrap { max-width: 520px; margin: 0 auto; display: grid; gap: 10px; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--want); outline-offset: 2px; }
+
+.big { border: 2px solid var(--want); border-radius: 0; padding: 9px; background: transparent; color: var(--want); font-family: var(--f-display); font-size: 21px; letter-spacing: .03em; text-transform: uppercase; width: 100%; line-height: 1.1;
+  box-shadow: 0 0 18px rgba(204,255,0,.18); transition: background .15s, color .15s, box-shadow .15s; }
+.big:hover, .big:active { background: var(--want); color: var(--bg); box-shadow: 0 0 28px rgba(204,255,0,.35); }
+.count { text-align: center; font: 400 11px var(--f-mono); letter-spacing: .3em; text-transform: uppercase; color: var(--muted); margin-top: -4px; font-size: 10px; }
+.count:not(:empty)::before { content: "/// "; color: var(--want); }
+
+/* add box */
+form { background: var(--surface); border: 1px solid var(--border); padding: 8px; display: grid; gap: 8px; }
+.addrow { display: flex; gap: 6px; }
+#txt { flex: 1; min-width: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 0; padding: 8px 10px; font-size: 16px; }
+#txt:focus { border-color: var(--ink); outline: none; }
+#txt::placeholder { color: var(--dim); }
+.addbtn { border: 0; border-radius: 0; padding: 0 14px; background: var(--ink); color: var(--bg); font: 500 12px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; }
+.sl { display: grid; gap: 6px; }
+.ends { display: flex; justify-content: space-between; align-items: baseline; font: 500 11px var(--f-mono); text-transform: uppercase; letter-spacing: .3em; }
+.ends .w { color: var(--want); } .ends .n { color: var(--need-text); }
+.ends .mid { font-family: var(--f-display); font-size: 22px; letter-spacing: .03em; font-weight: 400; }
+
+/* faders: fill from the bottom, drag or tap anywhere on them */
+.faders { display: flex; gap: 4px; align-items: flex-end; flex: none; }
+.fd { display: grid; justify-items: center; gap: 2px; }
+.fader { position: relative; width: 18px; height: 40px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--border); cursor: ns-resize; touch-action: none; -webkit-user-select: none; user-select: none; }
+.fader i { position: absolute; left: 0; right: 0; bottom: 0; height: var(--v); }
+.fader i::before { content: ""; position: absolute; left: -3px; right: -3px; top: -2px; height: 4px; background: var(--ink); }
+.fader.need i { background: var(--need); } .fader.want i { background: var(--want); }
+.fader:focus { outline: none; }
+.fader:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.fd small { font: 500 8px var(--f-mono); letter-spacing: .15em; text-transform: uppercase; }
+.fd small.n { color: var(--need-text); } .fd small.w { color: var(--want); }
+.fader.lg { width: 30px; height: 56px; }
+li .fader { height: 32px; }
+li .fd small { display: none; }
+.addopts { display: flex; gap: 10px; align-items: flex-end; }
+.addopts .faders { gap: 8px; }
+.addopts .side { flex: 1; min-width: 0; display: grid; gap: 6px; align-content: end; }
+.toggle { border: 1px solid var(--border); background: var(--bg); color: var(--muted); padding: 7px 10px; font: 500 10px var(--f-mono); letter-spacing: .25em; text-transform: uppercase; text-align: left; }
+.toggle[aria-pressed="true"] { background: var(--need); border-color: var(--need); color: #fff; }
+.hintline { font-size: 12px; color: var(--muted); line-height: 1.35; }
+
+/* the list */
+.grp { display: grid; gap: 4px; }
+.grp h2 { margin: 4px 0 0; font-family: var(--f-display); font-weight: 400; font-size: 16px; letter-spacing: .03em; text-transform: uppercase; line-height: 1; }
+.grp.need h2 { color: var(--need-text); } .grp.both h2 { color: var(--both); } .grp.want h2 { color: var(--want); }
+ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+li { background: var(--surface); border: 1px solid var(--border); display: flex; align-items: flex-start; }
+li .chk { flex: none; width: 38px; min-height: 40px; border: 0; background: transparent; display: grid; place-items: center; padding: 0; color: var(--dim); }
+li .chk span { width: 17px; height: 17px; border: 2px solid currentColor; display: block; }
+li .chk:hover { color: var(--want); } li .chk:hover span { background: currentColor; }
+li .mid { flex: 1; min-width: 0; padding-top: 13px; display: grid; gap: 2px; }
+li .t { overflow-wrap: anywhere; font-weight: 500; font-size: 15px; line-height: 1.25; }
+li .x { flex: none; align-self: center !important; width: 32px; height: 40px; border: 0; background: transparent; color: var(--dim); font-size: 18px; padding: 0; }
+li .x:hover { color: var(--ink); }
+.empty { color: var(--muted); text-align: center; padding: 12px 8px; font-size: 14px; border: 1px dashed var(--border); }
+
+li { align-items: stretch; }
+li .mid { padding: 10px 0; cursor: pointer; align-content: center; gap: 4px; }
+li .faders { padding: 5px 2px 5px 6px; align-items: center; }
+li .x { align-self: flex-start; }
+li.urgent { border-color: var(--need); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font: 500 8.5px var(--f-mono); letter-spacing: .15em; text-transform: uppercase; padding: 2px 5px; border: 1px solid var(--border); color: var(--muted); }
+.chip.u { background: var(--need); border-color: var(--need); color: #fff; }
+.chip.r { color: var(--want); border-color: rgba(204,255,0,.4); }
+.chip.now { background: var(--want); border-color: var(--want); color: var(--bg); }
+.more { font: 500 10px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--dim); }
+.panel { background: var(--surface); border: 1px solid var(--border); border-top: 0; margin-top: -4px; padding: 8px 10px 10px; display: grid; gap: 6px; }
+.panel label { font: 500 9px var(--f-mono); letter-spacing: .25em; text-transform: uppercase; color: var(--muted); }
+.panel input[type="datetime-local"] { flex: 1; width: auto; min-width: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 0; padding: 6px 8px; font-size: 16px; }
+.prow { display: flex; gap: 6px; flex-wrap: wrap; }
+.pbtn { border: 1px solid var(--border); background: var(--bg); color: var(--ink); padding: 7px 9px; font: 500 9.5px var(--f-mono); letter-spacing: .15em; text-transform: uppercase; text-decoration: none; display: inline-block; }
+.pbtn.cal { border-color: var(--want); color: var(--want); }
+.pbtn.ghost { border-color: transparent; color: var(--muted); }
+
+/* "just this one" screen */
+#one { position: fixed; inset: 0; background: var(--bg); z-index: 20; display: grid; align-content: center; justify-items: center; gap: 14px; text-align: center;
+  padding: calc(24px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px)); }
+#oneTag { font: 500 11px var(--f-mono); text-transform: uppercase; letter-spacing: .3em; }
+#oneTag:not(:empty)::before { content: "/// "; }
+#oneT { font-family: var(--f-display); font-size: 34px; line-height: 1.02; text-transform: uppercase; max-width: 16ch; overflow-wrap: anywhere; text-wrap: balance; letter-spacing: .01em; }
+#one .acts { display: grid; gap: 8px; width: 100%; max-width: 300px; }
+#one .acts button { border-radius: 0; padding: 12px; font: 500 11px var(--f-mono); letter-spacing: .25em; text-transform: uppercase; }
+#oneDone { border: 0; background: var(--want); color: var(--bg); box-shadow: 0 0 28px rgba(204,255,0,.3); }
+#oneSkip { border: 1px solid var(--border); background: var(--surface); }
+#oneBack { border: 0; background: transparent; color: var(--muted); }
+
+/* top bar, tabs */
+.topbar { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 6px; }
+.addt { border: 0; border-radius: 0; background: var(--ink); color: var(--bg); padding: 0 14px; font: 500 11px var(--f-mono); letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+.addt[aria-expanded="true"] { background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--border); }
+.tabs { display: flex; gap: 18px; align-items: center; border-bottom: 1px solid var(--border); }
+.tabs button { border: 0; background: transparent; padding: 6px 0; margin-bottom: -1px; border-bottom: 2px solid transparent; font: 500 10px var(--f-mono); letter-spacing: .25em; text-transform: uppercase; color: var(--dim); }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--want); }
+.tabs b { font-weight: 500; color: var(--muted); }
+.tabs .count { margin: 0 0 0 auto; text-align: right; letter-spacing: .15em; }
+
+/* quick view: just what matters right now */
+body.quick .full { display: none !important; }
+.qbtn { border: 0; background: transparent; padding: 6px 0; font: 500 10px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--want); white-space: nowrap; }
+.tabs .qbtn { margin-left: 4px; }
+.tabs .count:empty + .qbtn { margin-left: auto; }
+#quickView { display: grid; gap: 8px; }
+.qhead { display: flex; justify-content: space-between; align-items: center; }
+.qlab { font: 500 10px var(--f-mono); letter-spacing: .3em; text-transform: uppercase; color: var(--muted); }
+.qlab::before { content: "/// "; color: var(--want); }
+.qnow { border: 2px solid var(--want); box-shadow: 0 0 18px rgba(204,255,0,.15); padding: 12px; display: grid; gap: 10px; }
+.qnow .tag { font: 500 10px var(--f-mono); letter-spacing: .25em; text-transform: uppercase; }
+.qnow .tt { font: 400 28px/1.05 var(--f-display); text-transform: uppercase; overflow-wrap: anywhere; text-wrap: balance; }
+.qnow .row { display: flex; gap: 6px; }
+.qnow .row button { flex: 1; border: 1px solid var(--border); background: var(--surface); color: var(--ink); padding: 10px; font: 500 10px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; }
+.qnow .row .go { background: var(--want); border-color: var(--want); color: var(--bg); }
+.qnow .none { color: var(--muted); font-size: 14px; }
+#qNext li .mid { cursor: default; }
+.qform { display: flex; gap: 6px; }
+.qform input { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 0; padding: 8px 10px; font-size: 16px; }
+.qform input:focus { border-color: var(--ink); outline: none; }
+.qform .addbtn { padding: 0 10px; font-size: 10px; letter-spacing: .15em; }
+.qform .addbtn.alt { background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--border); }
+.qhelp { font-size: 13px; color: var(--muted); }
+.qhelp summary { cursor: pointer; font: 500 10px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--dim); padding: 4px 0; }
+.qhelp ol { margin: 6px 0; padding-left: 18px; display: grid; gap: 2px; }
+.qhelp ol li { display: list-item; background: none; border: 0; }
+.qlink { display: flex; gap: 6px; align-items: center; }
+.qlink span { flex: 1; min-width: 0; overflow-wrap: anywhere; font: 400 11px var(--f-mono); color: var(--ink); user-select: all; -webkit-user-select: all; background: var(--surface); padding: 7px 8px; border: 1px solid var(--border); }
+
+/* stream of consciousness */
+#streamView { display: grid; gap: 8px; }
+.sform { background: var(--surface); border: 1px solid var(--border); padding: 8px; display: grid; gap: 6px; }
+#sTxt { width: 100%; min-width: 0; min-height: 38px; resize: none; overflow: hidden; background: var(--bg); border: 1px solid var(--border); border-radius: 0; padding: 8px 10px; font: 400 16px/1.35 var(--f-body); color: var(--ink); }
+#sTxt:focus { border-color: var(--ink); outline: none; }
+#sTxt::placeholder { color: var(--dim); }
+.srow { display: flex; gap: 6px; align-items: center; }
+.srow .hintline { flex: 1; min-width: 0; font-size: 11px; }
+.srow .addbtn { padding: 8px 14px; }
+.vh { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+#sPrev { position: relative; justify-self: start; }
+#sPrev img { max-height: 90px; width: auto; display: block; }
+#sPrev button { position: absolute; top: 2px; right: 2px; border: 0; background: var(--bg); color: var(--ink); width: 24px; height: 24px; padding: 0; }
+li.th { align-items: flex-start; padding-left: 10px; }
+.th .tb { flex: 1; min-width: 0; display: grid; gap: 5px; padding: 8px 0; }
+.th .tt { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; line-height: 1.35; }
+.th img { max-width: 100%; max-height: 200px; width: auto; display: block; cursor: zoom-in; background: var(--bg); }
+.tm { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font: 500 9px var(--f-mono); letter-spacing: .15em; text-transform: uppercase; color: var(--dim); }
+.tm button { border: 0; background: transparent; padding: 0; font: inherit; letter-spacing: inherit; text-transform: inherit; color: var(--want); }
+.tm .on { color: var(--muted); }
+#picView { position: fixed; inset: 0; z-index: 25; background: rgba(0,0,0,.92); display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); cursor: zoom-out; }
+#picView img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+#toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 30; background: var(--ink); color: var(--bg);
+  padding: 9px 14px; font-size: 13px; font-weight: 500; display: flex; gap: 14px; align-items: center; max-width: calc(100% - 32px); }
+#toast button { border: 0; background: transparent; color: inherit; font-weight: 700; text-decoration: underline; padding: 0; }
+.note { font: 400 9px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--dim); text-align: center; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar full">
+    <button class="big" id="go" type="button">What should I do?</button>
+    <button class="addt" id="addToggle" type="button" aria-expanded="false" aria-controls="add">+ Add this</button>
+  </div>
+
+  <form id="add" class="full" autocomplete="off" hidden>
+    <div class="addrow">
+      <input id="txt" type="text" placeholder="Something on your mind…" aria-label="New thing">
+      <button class="addbtn" type="submit">Save</button>
+    </div>
+    <div class="addopts">
+      <div class="faders">
+        <div class="fd"><div class="fader need lg" id="addNeed" role="slider" tabindex="0" aria-label="How much I need to" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" style="--v:50%"><i></i></div><small class="n">Need</small></div>
+        <div class="fd"><div class="fader want lg" id="addWant" role="slider" tabindex="0" aria-label="How much I want to" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" style="--v:50%"><i></i></div><small class="w">Want</small></div>
+      </div>
+      <div class="side">
+        <div class="hintline">Slide up or down. Tap a task for urgent or a reminder.</div>
+        <button class="toggle" type="button" id="addUrgent" aria-pressed="false">Urgent</button>
+      </div>
+    </div>
+  </form>
+
+  <nav class="tabs full" id="tabs">
+    <button type="button" data-tab="todo" aria-selected="true">To do <b id="todoN"></b></button>
+    <button type="button" data-tab="stream" aria-selected="false">Stream <b id="streamN"></b></button>
+    <span class="count" id="count"></span>
+    <button type="button" class="qbtn" id="toQuick">Quick view</button>
+  </nav>
+
+  <div id="todoView" class="full"><div id="list"></div></div>
+
+  <section id="streamView" class="full" hidden>
+    <form class="sform" id="sform" autocomplete="off">
+      <textarea id="sTxt" rows="1" enterkeyhint="done" placeholder="What's in your head?" aria-label="Thought"></textarea>
+      <div id="sPrev" hidden></div>
+      <div class="srow">
+        <label class="pbtn" id="picBtn" for="sPic" hidden>+ Pic</label>
+        <input class="vh" id="sPic" type="file" accept="image/*" tabindex="-1">
+        <span class="hintline">Or tap the mic on your keyboard and talk.</span>
+        <button class="addbtn" type="submit">Save</button>
+      </div>
+    </form>
+    <ul id="feed"></ul>
+  </section>
+  <section id="quickView" hidden>
+    <div class="qhead"><span class="qlab">Right now</span><button type="button" class="qbtn" id="toFull">Full list</button></div>
+    <div class="qnow" id="qNow"></div>
+    <div class="qlab" id="qNextLab">Next up</div>
+    <ul id="qNext"></ul>
+    <form class="qform" id="qform" autocomplete="off">
+      <input id="qTxt" type="text" enterkeyhint="done" placeholder="Quick add…" aria-label="Quick add">
+      <button type="submit" class="addbtn" data-k="todo">To do</button>
+      <button type="submit" class="addbtn alt" data-k="stream">Stream</button>
+    </form>
+    <details class="qhelp">
+      <summary>Put this on your Home Screen</summary>
+      <ol>
+        <li id="qStep1">Copy this link and open it in Safari.</li>
+        <li>Tap Share, then Add to Home Screen.</li>
+        <li id="qStep3">Turn off Open as Web App so you stay signed in.</li>
+      </ol>
+      <div class="qlink"><span id="qLink">https://claude.ai/artifact/GM51pFBUJuhkqy6ng67yhQ#quick</span><button type="button" class="pbtn" id="qCopy">Copy</button></div>
+    </details>
+  </section>
+  <div class="note" id="note"></div>
+</div>
+
+<div id="picView" hidden><img id="picImg" alt=""></div>
+
+<div id="one" hidden>
+  <div id="oneTag"></div>
+  <div id="oneT"></div>
+  <div class="acts">
+    <button id="oneDone" type="button">Done</button>
+    <button id="oneSkip" type="button">Not this one</button>
+    <button id="oneBack" type="button">Back to the list</button>
+  </div>
+</div>
+
+<div id="toast" hidden></div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const pad = n => String(n).padStart(2, "0");
+  const dayKey = ms => { const d = new Date(ms); return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate(); };
+  const clamp = v => Math.max(0, Math.min(100, Math.round((Number(v) || 0) / 5) * 5));
+  // need and want are 0-100 each. Older saved items (one slider, or need/want lists) are converted on read.
+  const both = t => typeof t.need === "number" && typeof t.want === "number";
+  const needOf = t => both(t) ? clamp(t.need) : typeof t.lean === "number" ? clamp(t.lean) : t.kind === "need" ? 100 : t.kind === "want" ? 0 : 50;
+  const wantOf = t => both(t) ? clamp(t.want) : typeof t.lean === "number" ? clamp(100 - t.lean) : t.kind === "want" ? 100 : t.kind === "need" ? 0 : 50;
+  const ringing = t => !t.done && t.remindAt && t.remindAt <= Date.now();
+  const groupOf = t => t.urgent || ringing(t) ? "urgent" : needOf(t) >= 50 && wantOf(t) >= 50 ? "both" : needOf(t) >= wantOf(t) ? "need" : "want";
+  const GROUPS = [["urgent", "Urgent"], ["both", "Both"], ["need", "Need"], ["want", "Want"]];
+  const groupColor = { urgent: "var(--need-text)", both: "var(--both)", need: "var(--need-text)", want: "var(--want)" };
+  let tasks = [], store = null, loaded = false, current = null, skipped = [], undoFn = null, toastT = null, openId = null;
+  let draft = { need: 50, want: 50, urgent: false };
+
+  // ---------- saving: your account when available, otherwise this device
+  const use = n => (window.claude && typeof window.claude.use === "function") ? window.claude.use(n) : Promise.resolve(null);
+  function localStore(key) {
+    let list = []; try { list = JSON.parse(localStorage.getItem(key) || "[]"); } catch {}
+    const w = () => { try { localStorage.setItem(key, JSON.stringify(list)); } catch {} };
+    return { watch(cb) { cb(list.slice()); }, async save(t) { list = list.filter(x => x.id !== t.id).concat([t]); w(); }, async remove(id) { list = list.filter(x => x.id !== id); w(); } };
+  }
+  function dbStore(db, name) {
+    const col = db.collection(name), q = {};
+    const chain = (id, fn) => (q[id] = (q[id] || Promise.resolve()).then(fn, fn));
+    return {
+      watch(cb, err) { col.onSnapshot(s => cb(s.docs.filter(d => d.exists).map(d => ({ ...d.data(), id: d.id }))), err); },
+      save(t) { return chain(t.id, () => col.doc(t.id).set(JSON.parse(JSON.stringify(t)))); },
+      remove(id) { return chain(id, () => col.doc(id).delete()); }
+    };
+  }
+  function oops() { toast("That didn't save. Check your connection."); }
+  // every save writes the item in the current shape (need, want, urgent, remindAt)
+  function norm(t) { const { lean, kind, ...r } = t; return { ...r, need: needOf(t), want: wantOf(t), urgent: !!t.urgent, remindAt: t.remindAt || null }; }
+  function save(t) { t = norm(t); tasks = tasks.filter(x => x.id !== t.id).concat([t]); render(); store && store.save(t).catch(oops); }
+  function del(id) { tasks = tasks.filter(x => x.id !== id); render(); store && store.remove(id).catch(oops); }
+
+  function toast(msg, undo) {
+    clearTimeout(toastT); undoFn = undo || null;
+    $("toast").innerHTML = esc(msg) + (undo ? ' <button type="button" id="undo">Undo</button>' : "");
+    $("toast").hidden = false; toastT = setTimeout(() => { $("toast").hidden = true; undoFn = null; }, undo ? 6000 : 3500);
+  }
+  $("toast").addEventListener("click", e => { if (e.target.id === "undo" && undoFn) { const f = undoFn; undoFn = null; $("toast").hidden = true; f(); } });
+
+  // ---------- reminders
+  const fmtWhen = ms => { const d = new Date(ms), today = dayKey(Date.now()) === dayKey(ms), tm = new Date(Date.now() + 864e5);
+    const day = today ? "Today" : dayKey(tm.getTime()) === dayKey(ms) ? "Tomorrow" : d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+    return day + " " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }); };
+  const toLocalInput = ms => { const d = new Date(ms); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()); };
+  // iPhone Calendar takes events as a calendar file. This free link service turns the details into one, with an alert at the start time.
+  function calLink(t) {
+    const a = new Date(t.remindAt), b = new Date(t.remindAt + 30 * 6e4);
+    const q = new URLSearchParams({ subject: t.title, description: "From Want / Need", dtstart: a.toISOString().replace(/\.\d+Z$/, "Z"), dtend: b.toISOString().replace(/\.\d+Z$/, "Z"), reminder: "0" });
+    return "https://ics.agical.io/?" + q.toString();
+  }
+  function siriText(t) {
+    const d = new Date(t.remindAt);
+    return "Remind me to " + t.title + " on " + d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }) + " at " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  }
+
+  // ---------- the list
+  const score = t => (t.urgent ? 1000 : 0) + (ringing(t) ? 500 : 0) + needOf(t) + wantOf(t) * 0.6;
+  const openTasks = () => tasks.filter(t => !t.done).sort((a, b) => score(b) - score(a) || (a.created || 0) - (b.created || 0));
+  const fader = (kind, v, label, id) => `<div class="fd"><div class="fader ${kind}" role="slider" tabindex="0" data-f="${kind}" aria-label="${kind === "need" ? "Need" : "Want"}: ${esc(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v}" style="--v:${v}%"${id ? ` id="${id}"` : ""}><i></i></div><small class="${kind[0]}">${kind === "need" ? "N" : "W"}</small></div>`;
+  function panel(t) {
+    return `<li class="panel" data-id="${esc(t.id)}">
+      <div class="prow">
+        <button class="toggle" type="button" data-a="urgent" aria-pressed="${!!t.urgent}">Urgent</button>
+        <input type="datetime-local" id="re_${esc(t.id)}" data-a="when" aria-label="Remind me" value="${t.remindAt ? toLocalInput(t.remindAt) : ""}">
+      </div>
+      <div class="prow">
+        ${t.remindAt ? `<a class="pbtn cal" href="${esc(calLink(t))}" target="_blank" rel="noopener">iPhone Calendar</a>
+        <button class="pbtn" type="button" data-a="siri">Copy for Siri</button>
+        <button class="pbtn ghost" type="button" data-a="clearwhen">Clear time</button>` : ""}
+        <button class="pbtn ghost" type="button" data-a="close">Close</button>
+      </div>
+      <div class="hintline">${t.remindAt ? "Siri makes it a real Reminder: hold the side button and paste." : "Pick a time to send it to your calendar or Siri."}</div>
+    </li>`;
+  }
+  function row(t) {
+    const chips = [];
+    if (t.urgent) chips.push(`<span class="chip u">Urgent</span>`);
+    if (t.remindAt) chips.push(`<span class="chip ${ringing(t) ? "now" : "r"}">${ringing(t) ? "Now" : esc(fmtWhen(t.remindAt))}</span>`);
+    return `<li data-id="${esc(t.id)}" class="${t.urgent ? "urgent" : ""}">
+      <button class="chk" type="button" data-a="done" aria-label="Done: ${esc(t.title)}"><span></span></button>
+      <div class="mid" data-a="open"><span class="t">${esc(t.title)}</span>${chips.length ? `<div class="chips">${chips.join("")}</div>` : ""}</div>
+      <div class="faders">${fader("need", needOf(t), t.title)}${fader("want", wantOf(t), t.title)}</div>
+      <button class="x" type="button" data-a="del" aria-label="Delete ${esc(t.title)}">×</button></li>${openId === t.id ? panel(t) : ""}`;
+  }
+  function render() {
+    const items = openTasks();
+    if (!items.length) $("list").innerHTML = `<div class="empty">${loaded ? "Nothing on the list. Add something up top." : "Loading…"}</div>`;
+    else {
+      const g = { urgent: [], both: [], need: [], want: [] };
+      items.forEach(t => g[groupOf(t)].push(t));
+      $("list").innerHTML = GROUPS.filter(([k]) => g[k].length).map(([k, label]) => `<section class="grp ${k}"><h2 style="color:${groupColor[k]}">${label}</h2><ul>${g[k].map(row).join("")}</ul></section>`).join("");
+    }
+    const today = dayKey(Date.now()), n = tasks.filter(t => t.done && t.doneAt && dayKey(t.doneAt) === today).length;
+    $("count").textContent = n ? n + " done today" : "";
+    $("todoN").textContent = items.length || "";
+    if (typeof renderQuick === "function") renderQuick();
+    const ring = tasks.filter(ringing).length; document.title = ring ? "(" + ring + ") Want / Need" : "Want / Need";
+  }
+  function finish(t) { const was = { ...t }; if (openId === t.id) openId = null; save({ ...t, done: true, doneAt: Date.now() }); toast("Done: " + t.title, () => save(was)); }
+
+  $("list").addEventListener("click", async e => {
+    const b = e.target.closest("[data-a]"); if (!b || b.classList.contains("fader")) return;
+    const host = e.target.closest("[data-id]"); const t = host && tasks.find(x => x.id === host.dataset.id); if (!t) return;
+    switch (b.dataset.a) {
+      case "done": finish(t); break;
+      case "del": { const was = { ...t }; if (openId === t.id) openId = null; del(t.id); toast("Deleted", () => save(was)); break; }
+      case "open": openId = openId === t.id ? null : t.id; render(); break;
+      case "close": openId = null; render(); break;
+      case "urgent": save({ ...t, urgent: !t.urgent }); break;
+      case "clearwhen": save({ ...t, remindAt: null }); break;
+      case "siri": {
+        const txt = siriText(t);
+        try { await navigator.clipboard.writeText(txt); toast("Copied. Now hold the side button and paste it to Siri."); }
+        catch { toast(txt); }
+        break;
+      }
+    }
+  });
+  $("list").addEventListener("change", e => {
+    if (e.target.dataset.a !== "when") return;
+    const host = e.target.closest("[data-id]"); const t = host && tasks.find(x => x.id === host.dataset.id); if (!t) return;
+    const v = e.target.value ? new Date(e.target.value).getTime() : null;
+    if (v !== t.remindAt) save({ ...t, remindAt: v });
+  });
+
+  // ---------- faders: drag or tap. The fill follows your finger; it saves when you let go.
+  let drag = null;
+  const valAt = (el, y) => { const r = el.getBoundingClientRect(); return clamp((r.bottom - y) / r.height * 100); };
+  const paint = (el, v) => { el.style.setProperty("--v", v + "%"); el.setAttribute("aria-valuenow", v); };
+  function commit(el, v) {
+    if (el.id === "addNeed") { draft.need = v; return; }
+    if (el.id === "addWant") { draft.want = v; return; }
+    const li = el.closest("li[data-id]"); const t = li && tasks.find(x => x.id === li.dataset.id); if (!t) return;
+    const f = el.dataset.f; if ((f === "need" ? needOf(t) : wantOf(t)) !== v) save({ ...t, [f]: v });
+  }
+  document.addEventListener("pointerdown", e => {
+    const el = e.target.closest(".fader"); if (!el) return;
+    e.preventDefault(); drag = { el, v: valAt(el, e.clientY) }; paint(el, drag.v);
+    try { el.setPointerCapture(e.pointerId); } catch {}
+  });
+  document.addEventListener("pointermove", e => { if (!drag) return; drag.v = valAt(drag.el, e.clientY); paint(drag.el, drag.v); });
+  const end = () => { if (!drag) return; const d = drag; drag = null; commit(d.el, d.v); };
+  document.addEventListener("pointerup", end); document.addEventListener("pointercancel", end);
+  document.addEventListener("keydown", e => {
+    const el = e.target.closest && e.target.closest(".fader"); if (!el) return;
+    const step = { ArrowUp: 10, ArrowRight: 10, ArrowDown: -10, ArrowLeft: -10 }[e.key]; if (!step) return;
+    e.preventDefault(); const v = clamp(Number(el.getAttribute("aria-valuenow")) + step); paint(el, v); commit(el, v);
+  });
+
+  // ---------- adding
+  $("addUrgent").addEventListener("click", () => { draft.urgent = !draft.urgent; $("addUrgent").setAttribute("aria-pressed", String(draft.urgent)); });
+  $("add").addEventListener("submit", e => {
+    e.preventDefault();
+    const v = $("txt").value.trim(); if (!v) { $("txt").focus(); return; }
+    save({ id: "t_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: v, need: draft.need, want: draft.want, urgent: draft.urgent, remindAt: null, done: false, doneAt: null, created: Date.now() });
+    $("txt").value = ""; $("txt").focus();
+    draft.urgent = false; $("addUrgent").setAttribute("aria-pressed", "false");
+  });
+
+  // ---------- "What should I do?"
+  // Urgent and reminders that are due come first, then the most need. Right after you finish a need, it hands you a want.
+  function choose() {
+    const pool = openTasks().filter(t => !skipped.includes(t.id)); if (!pool.length) return null;
+    const top = pool[0];
+    if (top.urgent || ringing(top)) return { t: top, why: top.urgent ? "Urgent" : "Reminder" };
+    const last = tasks.filter(t => t.done && t.doneAt).sort((a, b) => b.doneAt - a.doneAt)[0];
+    const earned = last && needOf(last) > wantOf(last) && Date.now() - last.doneAt < 6 * 36e5;
+    const treats = pool.filter(t => groupOf(t) === "want").sort((a, b) => wantOf(b) - wantOf(a));
+    if (earned && treats.length) return { t: treats[0], why: "You did a need. Have a want." };
+    const g = groupOf(top); return { t: top, why: g === "both" ? "Need it and want it" : g === "need" ? "Need" : "Want" };
+  }
+  function show() {
+    const c = choose(); current = c && c.t;
+    if (!c) {
+      $("oneTag").textContent = ""; $("oneT").textContent = openTasks().length ? "That's everything. Pick any, or take a break." : "Nothing on the list. You're free.";
+      $("oneDone").hidden = true; $("oneSkip").hidden = !skipped.length; $("oneSkip").textContent = "Start over";
+    } else {
+      $("oneTag").textContent = c.why; $("oneTag").style.color = c.why === "You did a need. Have a want." ? "var(--want)" : groupColor[groupOf(c.t)];
+      $("oneT").textContent = c.t.title; $("oneDone").hidden = false; $("oneSkip").hidden = false; $("oneSkip").textContent = "Not this one";
+    }
+    $("one").hidden = false;
+  }
+  $("go").addEventListener("click", () => { skipped = []; show(); });
+  $("oneDone").addEventListener("click", () => { if (current) finish(current); skipped = []; show(); });
+  $("oneSkip").addEventListener("click", () => { if (current) skipped.push(current.id); else skipped = []; show(); });
+  $("oneBack").addEventListener("click", () => { $("one").hidden = true; });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") { if (!$("picView").hidden) $("picView").hidden = true; else if (!$("one").hidden) $("one").hidden = true; else if (!$("add").hidden) setAddOpen(false); else if (openId) { openId = null; render(); } } });
+
+  // re-check reminders every 30 seconds while the page is open
+  let sig = "";
+  setInterval(() => { if (drag) return; const s = tasks.filter(ringing).map(t => t.id).join(",") + dayKey(Date.now()); if (s !== sig) { sig = s; render(); } }, 30000);
+
+  // ---------- "Add this" opens and closes the add box
+  function setAddOpen(open) {
+    $("add").hidden = !open; $("addToggle").setAttribute("aria-expanded", String(open)); $("addToggle").textContent = open ? "Close" : "+ Add this";
+    if (open) { setTab("todo"); $("txt").focus(); }
+  }
+  $("addToggle").addEventListener("click", () => setAddOpen($("add").hidden));
+
+  // ---------- tabs
+  let tab = "todo"; try { tab = localStorage.getItem("wn.tab") === "stream" ? "stream" : "todo"; } catch {}
+  function setTab(t) {
+    tab = t; try { localStorage.setItem("wn.tab", t); } catch {}
+    document.querySelectorAll("#tabs [data-tab]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
+    $("todoView").hidden = t !== "todo"; $("streamView").hidden = t !== "stream";
+  }
+  $("tabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) setTab(b.dataset.tab); });
+  setTab(tab);
+
+  // ---------- stream of consciousness: thoughts, dictation (the keyboard mic), photos
+  let thoughts = [], sstore = null, assets = null, pending = null;
+  const picUrls = {};
+  function saveThought(t) { thoughts = thoughts.filter(x => x.id !== t.id).concat([t]); renderFeed(); sstore && sstore.save(t).catch(oops); }
+  function delThought(id) { thoughts = thoughts.filter(x => x.id !== id); renderFeed(); sstore && sstore.remove(id).catch(oops); }
+  const stamp = ms => { const d = new Date(ms); return (dayKey(ms) === dayKey(Date.now()) ? "Today" : d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })) + " " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }); };
+  function renderFeed() {
+    const list = thoughts.slice().sort((a, b) => (b.created || 0) - (a.created || 0));
+    $("feed").innerHTML = list.length ? list.map(t => `<li class="th" data-id="${esc(t.id)}"><div class="tb">
+        ${t.text ? `<div class="tt">${esc(t.text)}</div>` : ""}
+        ${t.img && /^[A-Za-z0-9_-]{8,64}$/.test(t.img) ? (t.img[0] === "L" ? `<img data-local="${t.img}" alt="" data-a="zoom">` : `<img src="/_blob/${t.img}" alt="" loading="lazy" data-a="zoom">`) : ""}
+        <div class="tm"><span>${esc(stamp(t.created || Date.now()))}</span>${t.tasked ? `<span class="on">On your list</span>` : `<button type="button" data-a="totask">Make it a task</button>`}</div>
+      </div><button class="x" type="button" data-a="sdel" aria-label="Delete thought">×</button></li>`).join("")
+      : `<li class="empty" style="border:1px dashed var(--border);background:transparent;display:block">${loaded ? "Dump anything here. Two words is plenty." : "Loading…"}</li>`;
+    $("streamN").textContent = thoughts.length || "";
+    // photos kept on this phone (the standalone app) load from its own storage
+    $("feed").querySelectorAll("img[data-local]").forEach(async el => {
+      const id = el.dataset.local;
+      if (!picUrls[id] && assets && assets.get) { const b = await assets.get(id).catch(() => null); if (b) picUrls[id] = URL.createObjectURL(b); }
+      if (picUrls[id]) el.src = picUrls[id];
+    });
+  }
+  const grow = () => { const t = $("sTxt"); t.style.height = "auto"; t.style.height = t.scrollHeight + 2 + "px"; };
+  $("sTxt").addEventListener("input", grow);
+  $("sTxt").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("sform").requestSubmit(); } });
+  function clearPic() { pending = null; $("sPrev").hidden = true; $("sPrev").innerHTML = ""; $("sPic").value = ""; }
+  $("sPic").addEventListener("change", () => {
+    const f = $("sPic").files && $("sPic").files[0]; if (!f) return;
+    pending = f; $("sPrev").innerHTML = `<img alt="" src="${URL.createObjectURL(f)}"><button type="button" aria-label="Remove photo">×</button>`; $("sPrev").hidden = false;
+  });
+  $("sPrev").addEventListener("click", e => { if (e.target.closest("button")) clearPic(); });
+  // shrink big phone photos before saving them
+  async function shrink(file) {
+    try {
+      const url = URL.createObjectURL(file);
+      const img = await new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = url; });
+      const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      const blob = await new Promise(ok => c.toBlob(ok, "image/jpeg", 0.85));
+      if (blob && blob.size) return blob;
+    } catch {}
+    return /^image\/(jpeg|png|webp|gif)$/.test(file.type) ? file : null;
+  }
+  let saving = false;
+  $("sform").addEventListener("submit", async e => {
+    e.preventDefault(); if (saving) return;
+    const text = $("sTxt").value.trim(); if (!text && !pending) { $("sTxt").focus(); return; }
+    let img = null;
+    if (pending && !assets) { toast("Photos can't be saved here. Open the app in Claude to add them."); return; }
+    if (pending && assets) {
+      saving = true; toast("Saving photo…");
+      try { const blob = await shrink(pending); if (!blob) throw { code: "unsupported_type" }; const up = await assets.upload(blob, { type: blob.type || "image/jpeg" }); img = up.id; if (img[0] === "L") picUrls[img] = up.url; }
+      catch (err) { saving = false; toast(err && err.code === "too_large" ? "That photo is too big." : err && err.code === "unsupported_type" ? "That photo type won't save. Try a screenshot of it." : "The photo didn't save. Try again."); return; }
+      saving = false; $("toast").hidden = true;
+    }
+    saveThought({ id: "s_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text, img, tasked: false, created: Date.now() });
+    $("sTxt").value = ""; grow(); clearPic(); $("sTxt").focus();
+  });
+  $("feed").addEventListener("click", e => {
+    const b = e.target.closest("[data-a]"), li = e.target.closest("li[data-id]"); if (!b || !li) return;
+    const t = thoughts.find(x => x.id === li.dataset.id); if (!t) return;
+    if (b.dataset.a === "zoom") { const src = t.img[0] === "L" ? picUrls[t.img] : "/_blob/" + t.img; if (src) { $("picImg").src = src; $("picView").hidden = false; } }
+    else if (b.dataset.a === "totask") {
+      save({ id: "t_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: (t.text || "Photo idea").slice(0, 140), need: 50, want: 50, urgent: false, remindAt: null, done: false, doneAt: null, created: Date.now() });
+      saveThought({ ...t, tasked: true }); toast("Added to your to-do list");
+    } else if (b.dataset.a === "sdel") {
+      const was = { ...t }; delThought(t.id); toast("Deleted", () => saveThought(was));
+      // the photo itself goes once the undo is gone
+      if (t.img && assets) setTimeout(() => { if (!thoughts.some(x => x.id === t.id)) assets.delete(t.img).catch(() => {}); }, 7000);
+    }
+  });
+  $("picView").addEventListener("click", () => { $("picView").hidden = true; });
+
+  // ---------- quick view (open the link with #quick to land here)
+  let quick = false; try { quick = location.hash === "#quick"; } catch {}
+  let qSkip = [];
+  function setQuick(on) { quick = on; document.body.classList.toggle("quick", on); $("quickView").hidden = !on; if (on) { qSkip = []; renderQuick(); } }
+  function renderQuick() {
+    if (!quick) return;
+    const keep = skipped; skipped = qSkip; const c = choose(); skipped = keep;
+    $("qNow").innerHTML = c
+      ? `<div class="tag" style="color:${c.why === "You did a need. Have a want." ? "var(--want)" : groupColor[groupOf(c.t)]}">${esc(c.why)}</div><div class="tt">${esc(c.t.title)}</div>
+         <div class="row"><button type="button" class="go" data-q="done" data-id="${esc(c.t.id)}">Done</button><button type="button" data-q="skip" data-id="${esc(c.t.id)}">Not this one</button></div>`
+      : `<div class="none">${loaded ? (openTasks().length ? "You passed on everything. <button type=\"button\" class=\"qbtn\" data-q=\"reset\">Start over</button>" : "Nothing on the list. You're free.") : "Loading…"}</div>`;
+    const next = openTasks().filter(t => !c || t.id !== c.t.id).slice(0, 5);
+    $("qNextLab").hidden = !next.length;
+    $("qNext").innerHTML = next.map(t => { const chips = []; if (t.urgent) chips.push(`<span class="chip u">Urgent</span>`); if (t.remindAt) chips.push(`<span class="chip ${ringing(t) ? "now" : "r"}">${ringing(t) ? "Now" : esc(fmtWhen(t.remindAt))}</span>`);
+      return `<li data-id="${esc(t.id)}" class="${t.urgent ? "urgent" : ""}"><button class="chk" type="button" data-q="done" data-id="${esc(t.id)}" aria-label="Done: ${esc(t.title)}"><span></span></button><div class="mid"><span class="t">${esc(t.title)}</span>${chips.length ? `<div class="chips">${chips.join("")}</div>` : ""}</div></li>`; }).join("");
+  }
+  $("quickView").addEventListener("click", e => {
+    const b = e.target.closest("[data-q]"); if (!b) return;
+    const t = tasks.find(x => x.id === b.dataset.id);
+    if (b.dataset.q === "done" && t) finish(t);
+    else if (b.dataset.q === "skip" && t) { qSkip.push(t.id); renderQuick(); }
+    else if (b.dataset.q === "reset") { qSkip = []; renderQuick(); }
+  });
+  $("toQuick").addEventListener("click", () => setQuick(true));
+  $("toFull").addEventListener("click", () => setQuick(false));
+  $("qform").addEventListener("submit", e => {
+    e.preventDefault();
+    const v = $("qTxt").value.trim(); if (!v) { $("qTxt").focus(); return; }
+    const k = (e.submitter && e.submitter.dataset.k) || "todo";
+    if (k === "stream") { saveThought({ id: "s_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text: v, img: null, tasked: false, created: Date.now() }); toast("Saved to Stream"); }
+    else { save({ id: "t_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: v, need: 50, want: 50, urgent: false, remindAt: null, done: false, doneAt: null, created: Date.now() }); toast("Added to your list"); }
+    $("qTxt").value = "";
+  });
+  $("qCopy").addEventListener("click", async () => {
+    const s = $("qLink").textContent;
+    try { await navigator.clipboard.writeText(s); toast("Link copied"); }
+    catch { const r = document.createRange(); r.selectNodeContents($("qLink")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast("Selected. Tap Copy."); }
+  });
+  setQuick(quick);
+  window.addEventListener("hashchange", () => { try { if (location.hash === "#quick") setQuick(true); } catch {} });
+
+  // ---------- standalone app: no Claude around it, so everything lives on this phone
+  const STANDALONE = !(window.claude && typeof window.claude.use === "function");
+  function localAssets() {
+    if (!("indexedDB" in window)) return null;
+    let dbp = null;
+    const open = () => dbp || (dbp = new Promise((ok, bad) => { const r = indexedDB.open("wn-photos", 1); r.onupgradeneeded = () => r.result.createObjectStore("p"); r.onsuccess = () => ok(r.result); r.onerror = () => bad(r.error); }));
+    const run = async (mode, fn) => { const d = await open(); return new Promise((ok, bad) => { const t = d.transaction("p", mode); const req = fn(t.objectStore("p")); t.oncomplete = () => ok(req && req.result); t.onerror = () => bad(t.error); }); };
+    return {
+      async upload(blob) { const id = "L" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); await run("readwrite", s => s.put(blob, id)); return { id, url: URL.createObjectURL(blob) }; },
+      async delete(id) { await run("readwrite", s => s.delete(id)); return { deleted: true }; },
+      get(id) { return run("readonly", s => s.get(id)); }
+    };
+  }
+  if (STANDALONE) {
+    try { if (/^https?:$/.test(location.protocol)) $("qLink").textContent = location.origin + location.pathname + "#quick"; } catch {}
+    $("qStep1").textContent = "Open this link in Safari.";
+    $("qStep3").textContent = "Leave Open as Web App on. It opens like a real app.";
+    try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch {}
+    try { if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {}); } catch {}
+  }
+
+  // ---------- start
+  render(); renderFeed();
+  (async () => {
+    const [db, a] = await Promise.all([use("db"), use("assets")]);
+    assets = a || (STANDALONE ? localAssets() : null); $("picBtn").hidden = !assets;
+    store = db ? dbStore(db, "tasks") : localStore("wn.simple");
+    sstore = db ? dbStore(db, "thoughts") : localStore("wn.thoughts");
+    if (!db) $("note").textContent = STANDALONE ? "Saved on this phone." : "Saved on this device only.";
+    const lost = () => { $("note").textContent = "Lost the connection. Reload the page."; };
+    store.watch(list => { tasks = list; loaded = true; if (!drag) render(); }, lost);
+    sstore.watch(list => { thoughts = list; renderFeed(); }, lost);
+    // first time the standalone app opens, bring over the list from Claude
+    let seeded = true; try { seeded = !!localStorage.getItem("wn.seeded"); localStorage.setItem("wn.seeded", "1"); } catch {}
+    if (STANDALONE && !db && !seeded && !tasks.length) {
+      [["t_mvqcvg5gxmxt", "Oil change", 100, 0, 1793085605764], ["t_mvqcvpweq8lz", "Frankie vet", 0, 0, 1793085618398], ["t_mvqcw2tq7r4x", "Fix bike", 0, 100, 1793085635150]]
+        .forEach(([id, title, need, want, created]) => save({ id, title, need, want, urgent: false, remindAt: null, done: false, doneAt: null, created }));
+    }
+  })();
+})();
+</script>
+</body>
+</html>

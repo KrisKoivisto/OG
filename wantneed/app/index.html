@@ -39,7 +39,7 @@ button, input { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--want); outline-offset: 2px; }
 
-.big { border: 2px solid var(--want); border-radius: 0; padding: 9px; background: transparent; color: var(--want); font-family: var(--f-display); font-size: 21px; letter-spacing: .03em; text-transform: uppercase; width: 100%; line-height: 1.1;
+.big { border: 2px solid var(--want); border-radius: 10px; padding: 11px; background: transparent; color: var(--want); font-family: var(--f-display); font-size: 21px; letter-spacing: .03em; text-transform: uppercase; width: 100%; line-height: 1.1;
   box-shadow: 0 0 18px rgba(204,255,0,.18); transition: background .15s, color .15s, box-shadow .15s; }
 .big:hover, .big:active { background: var(--want); color: var(--bg); box-shadow: 0 0 28px rgba(204,255,0,.35); }
 .count { text-align: center; font: 400 11px var(--f-mono); letter-spacing: .3em; text-transform: uppercase; color: var(--muted); margin-top: -4px; font-size: 10px; }
@@ -134,6 +134,34 @@ li.urgent { border-color: var(--need); }
 .tabs b { font-weight: 500; color: var(--muted); }
 .tabs .count { margin: 0 0 0 auto; text-align: right; letter-spacing: .15em; }
 
+
+/* v2 look: simple rows, tap chips instead of sliders */
+.addbar { display: flex; gap: 6px; background: transparent; border: 0; padding: 0; }
+.addbar #txt { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 11px 12px; font-size: 16px; }
+.addbar #txt:focus { border-color: var(--want); outline: none; }
+.addbar .addbtn { border-radius: 10px; padding: 0 16px; }
+.grp h2 { font-size: 15px; margin: 10px 0 2px; letter-spacing: .06em; }
+.grp.none h2 { color: var(--muted) !important; }
+#list ul, #qNext, #feed { gap: 0; border-top: 1px solid var(--border); }
+#list li, #qNext li, #feed li.th { background: transparent; border: 0; border-bottom: 1px solid var(--border); align-items: center; }
+#list li.urgent .t::after, #qNext li.urgent .t::after { content: " ●"; color: var(--need); font-size: 11px; vertical-align: 2px; }
+li .chk span { border-radius: 50%; width: 20px; height: 20px; }
+li .chk:hover span { background: transparent; box-shadow: inset 0 0 0 5px currentColor; }
+li .mid { padding: 12px 0; }
+li .t { font-size: 16px; font-weight: 500; }
+.tgs { display: flex; gap: 5px; flex: none; padding-left: 6px; }
+.tg { border: 1px solid var(--border); background: transparent; color: var(--dim); border-radius: 999px; padding: 6px 10px; font: 600 10px var(--f-mono); letter-spacing: .1em; text-transform: uppercase; }
+.tg.need[aria-pressed="true"] { background: var(--need); border-color: var(--need); color: #fff; }
+.tg.want[aria-pressed="true"] { background: var(--want); border-color: var(--want); color: var(--bg); }
+.chip { border-radius: 999px; }
+.panel { border: 0; border-bottom: 1px solid var(--border); background: var(--surface); border-radius: 0 0 10px 10px; margin-top: 0; }
+.toggle, .pbtn, .panel input[type="datetime-local"] { border-radius: 8px; }
+.sform, .qnow { border-radius: 10px; }
+#sTxt { border-radius: 8px; }
+.qform input { border-radius: 10px; }
+.qform .addbtn { border-radius: 10px; }
+.tabs { margin-top: 2px; }
+
 /* quick view: just what matters right now */
 body.quick .full { display: none !important; }
 .qbtn { border: 0; background: transparent; padding: 6px 0; font: 500 10px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--want); white-space: nowrap; }
@@ -195,26 +223,11 @@ li.th { align-items: flex-start; padding-left: 10px; }
 </head>
 <body>
 <div class="wrap">
-  <div class="topbar full">
-    <button class="big" id="go" type="button">What should I do?</button>
-    <button class="addt" id="addToggle" type="button" aria-expanded="false" aria-controls="add">+ Add this</button>
-  </div>
+  <button class="big full" id="go" type="button">What should I do?</button>
 
-  <form id="add" class="full" autocomplete="off" hidden>
-    <div class="addrow">
-      <input id="txt" type="text" placeholder="Something on your mind…" aria-label="New thing">
-      <button class="addbtn" type="submit">Save</button>
-    </div>
-    <div class="addopts">
-      <div class="faders">
-        <div class="fd"><div class="fader need lg" id="addNeed" role="slider" tabindex="0" aria-label="How much I need to" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" style="--v:50%"><i></i></div><small class="n">Need</small></div>
-        <div class="fd"><div class="fader want lg" id="addWant" role="slider" tabindex="0" aria-label="How much I want to" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" style="--v:50%"><i></i></div><small class="w">Want</small></div>
-      </div>
-      <div class="side">
-        <div class="hintline">Slide up or down. Tap a task for urgent or a reminder.</div>
-        <button class="toggle" type="button" id="addUrgent" aria-pressed="false">Urgent</button>
-      </div>
-    </div>
+  <form id="add" class="addbar full" autocomplete="off">
+    <input id="txt" type="text" enterkeyhint="done" placeholder="Add something…" aria-label="Add something">
+    <button class="addbtn" type="submit">Add</button>
   </form>
 
   <nav class="tabs full" id="tabs">
@@ -288,9 +301,9 @@ li.th { align-items: flex-start; padding-left: 10px; }
   const needOf = t => both(t) ? clamp(t.need) : typeof t.lean === "number" ? clamp(t.lean) : t.kind === "need" ? 100 : t.kind === "want" ? 0 : 50;
   const wantOf = t => both(t) ? clamp(t.want) : typeof t.lean === "number" ? clamp(100 - t.lean) : t.kind === "want" ? 100 : t.kind === "need" ? 0 : 50;
   const ringing = t => !t.done && t.remindAt && t.remindAt <= Date.now();
-  const groupOf = t => t.urgent || ringing(t) ? "urgent" : needOf(t) >= 50 && wantOf(t) >= 50 ? "both" : needOf(t) >= wantOf(t) ? "need" : "want";
-  const GROUPS = [["urgent", "Urgent"], ["both", "Both"], ["need", "Need"], ["want", "Want"]];
-  const groupColor = { urgent: "var(--need-text)", both: "var(--both)", need: "var(--need-text)", want: "var(--want)" };
+  const groupOf = t => t.urgent || ringing(t) ? "urgent" : needOf(t) >= 50 && wantOf(t) >= 50 ? "both" : needOf(t) >= 50 ? "need" : wantOf(t) >= 50 ? "want" : "none";
+  const GROUPS = [["urgent", "Urgent"], ["both", "Need + Want"], ["need", "Need"], ["want", "Want"], ["none", "Sort later"]];
+  const groupColor = { urgent: "var(--need-text)", both: "var(--both)", need: "var(--need-text)", want: "var(--want)", none: "var(--muted)" };
   let tasks = [], store = null, loaded = false, current = null, skipped = [], undoFn = null, toastT = null, openId = null;
   let draft = { need: 50, want: 50, urgent: false };
 
@@ -365,14 +378,14 @@ li.th { align-items: flex-start; padding-left: 10px; }
     return `<li data-id="${esc(t.id)}" class="${t.urgent ? "urgent" : ""}">
       <button class="chk" type="button" data-a="done" aria-label="Done: ${esc(t.title)}"><span></span></button>
       <div class="mid" data-a="open"><span class="t">${esc(t.title)}</span>${chips.length ? `<div class="chips">${chips.join("")}</div>` : ""}</div>
-      <div class="faders">${fader("need", needOf(t), t.title)}${fader("want", wantOf(t), t.title)}</div>
+      <div class="tgs"><button type="button" class="tg need" data-a="tneed" aria-pressed="${needOf(t) >= 50}">Need</button><button type="button" class="tg want" data-a="twant" aria-pressed="${wantOf(t) >= 50}">Want</button></div>
       <button class="x" type="button" data-a="del" aria-label="Delete ${esc(t.title)}">×</button></li>${openId === t.id ? panel(t) : ""}`;
   }
   function render() {
     const items = openTasks();
     if (!items.length) $("list").innerHTML = `<div class="empty">${loaded ? "Nothing on the list. Add something up top." : "Loading…"}</div>`;
     else {
-      const g = { urgent: [], both: [], need: [], want: [] };
+      const g = { urgent: [], both: [], need: [], want: [], none: [] };
       items.forEach(t => g[groupOf(t)].push(t));
       $("list").innerHTML = GROUPS.filter(([k]) => g[k].length).map(([k, label]) => `<section class="grp ${k}"><h2 style="color:${groupColor[k]}">${label}</h2><ul>${g[k].map(row).join("")}</ul></section>`).join("");
     }
@@ -393,6 +406,8 @@ li.th { align-items: flex-start; padding-left: 10px; }
       case "open": openId = openId === t.id ? null : t.id; render(); break;
       case "close": openId = null; render(); break;
       case "urgent": save({ ...t, urgent: !t.urgent }); break;
+      case "tneed": save({ ...t, need: needOf(t) >= 50 ? 0 : 100 }); break;
+      case "twant": save({ ...t, want: wantOf(t) >= 50 ? 0 : 100 }); break;
       case "clearwhen": save({ ...t, remindAt: null }); break;
       case "siri": {
         const txt = siriText(t);
@@ -433,14 +448,12 @@ li.th { align-items: flex-start; padding-left: 10px; }
     e.preventDefault(); const v = clamp(Number(el.getAttribute("aria-valuenow")) + step); paint(el, v); commit(el, v);
   });
 
-  // ---------- adding
-  $("addUrgent").addEventListener("click", () => { draft.urgent = !draft.urgent; $("addUrgent").setAttribute("aria-pressed", String(draft.urgent)); });
+  // ---------- adding: type, hit return, done. Tap Need or Want on it whenever.
   $("add").addEventListener("submit", e => {
     e.preventDefault();
     const v = $("txt").value.trim(); if (!v) { $("txt").focus(); return; }
-    save({ id: "t_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: v, need: draft.need, want: draft.want, urgent: draft.urgent, remindAt: null, done: false, doneAt: null, created: Date.now() });
-    $("txt").value = ""; $("txt").focus();
-    draft.urgent = false; $("addUrgent").setAttribute("aria-pressed", "false");
+    save({ id: "t_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: v, need: 0, want: 0, urgent: false, remindAt: null, done: false, doneAt: null, created: Date.now() });
+    $("txt").value = ""; $("txt").focus(); setTab("todo");
   });
 
   // ---------- "What should I do?"
@@ -453,7 +466,7 @@ li.th { align-items: flex-start; padding-left: 10px; }
     const earned = last && needOf(last) > wantOf(last) && Date.now() - last.doneAt < 6 * 36e5;
     const treats = pool.filter(t => groupOf(t) === "want").sort((a, b) => wantOf(b) - wantOf(a));
     if (earned && treats.length) return { t: treats[0], why: "You did a need. Have a want." };
-    const g = groupOf(top); return { t: top, why: g === "both" ? "Need it and want it" : g === "need" ? "Need" : "Want" };
+    const g = groupOf(top); return { t: top, why: g === "both" ? "Need it and want it" : g === "need" ? "Need" : g === "want" ? "Want" : "Not sorted yet" };
   }
   function show() {
     const c = choose(); current = c && c.t;
@@ -470,18 +483,11 @@ li.th { align-items: flex-start; padding-left: 10px; }
   $("oneDone").addEventListener("click", () => { if (current) finish(current); skipped = []; show(); });
   $("oneSkip").addEventListener("click", () => { if (current) skipped.push(current.id); else skipped = []; show(); });
   $("oneBack").addEventListener("click", () => { $("one").hidden = true; });
-  document.addEventListener("keydown", e => { if (e.key === "Escape") { if (!$("picView").hidden) $("picView").hidden = true; else if (!$("one").hidden) $("one").hidden = true; else if (!$("add").hidden) setAddOpen(false); else if (openId) { openId = null; render(); } } });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") { if (!$("picView").hidden) $("picView").hidden = true; else if (!$("one").hidden) $("one").hidden = true; else if (openId) { openId = null; render(); } } });
 
   // re-check reminders every 30 seconds while the page is open
   let sig = "";
   setInterval(() => { if (drag) return; const s = tasks.filter(ringing).map(t => t.id).join(",") + dayKey(Date.now()); if (s !== sig) { sig = s; render(); } }, 30000);
-
-  // ---------- "Add this" opens and closes the add box
-  function setAddOpen(open) {
-    $("add").hidden = !open; $("addToggle").setAttribute("aria-expanded", String(open)); $("addToggle").textContent = open ? "Close" : "+ Add this";
-    if (open) { setTab("todo"); $("txt").focus(); }
-  }
-  $("addToggle").addEventListener("click", () => setAddOpen($("add").hidden));
 
   // ---------- tabs
   let tab = "todo"; try { tab = localStorage.getItem("wn.tab") === "stream" ? "stream" : "todo"; } catch {}
@@ -597,7 +603,7 @@ li.th { align-items: flex-start; padding-left: 10px; }
     const v = $("qTxt").value.trim(); if (!v) { $("qTxt").focus(); return; }
     const k = (e.submitter && e.submitter.dataset.k) || "todo";
     if (k === "stream") { saveThought({ id: "s_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text: v, img: null, tasked: false, created: Date.now() }); toast("Saved to Stream"); }
-    else { save({ id: "t_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: v, need: 50, want: 50, urgent: false, remindAt: null, done: false, doneAt: null, created: Date.now() }); toast("Added to your list"); }
+    else { save({ id: "t_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: v, need: 0, want: 0, urgent: false, remindAt: null, done: false, doneAt: null, created: Date.now() }); toast("Added to your list"); }
     $("qTxt").value = "";
   });
   $("qCopy").addEventListener("click", async () => {

@@ -56,7 +56,9 @@ form { background: var(--surface); border: 1px solid var(--border); padding: 8px
 .fd small { font: 500 8px var(--f-mono); letter-spacing: .15em; text-transform: uppercase; }
 .fd small.n { color: var(--need-text); } .fd small.w { color: var(--want); }
 .fader.lg { width: 30px; height: 56px; }
-li .fader { height: 32px; }
+li .fader { height: 38px; width: 22px; border-radius: 5px; overflow: visible; }
+li .fader i { border-radius: 0 0 5px 5px; }
+li .faders { gap: 8px; }
 li .fd small { display: none; }
 .addopts { display: flex; gap: 10px; align-items: flex-end; }
 .addopts .faders { gap: 8px; }
@@ -364,7 +366,7 @@ li.th { align-items: flex-start; padding-left: 10px; }
     return `<li data-id="${esc(t.id)}" class="${t.urgent ? "urgent" : ""}">
       <button class="chk" type="button" data-a="done" aria-label="Done: ${esc(t.title)}"><span></span></button>
       <div class="mid" data-a="open"><span class="t">${esc(t.title)}</span>${chips.length ? `<div class="chips">${chips.join("")}</div>` : ""}</div>
-      <div class="tgs"><button type="button" class="tg need" data-a="tneed" aria-pressed="${needOf(t) >= 50}">Need</button><button type="button" class="tg want" data-a="twant" aria-pressed="${wantOf(t) >= 50}">Want</button></div>
+      <div class="faders">${fader("need", needOf(t), t.title)}${fader("want", wantOf(t), t.title)}</div>
       <button class="x" type="button" data-a="del" aria-label="Delete ${esc(t.title)}">×</button></li>${openId === t.id ? panel(t) : ""}`;
   }
   function render() {

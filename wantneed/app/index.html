@@ -164,6 +164,12 @@ li .t { font-size: 16px; font-weight: 500; }
 .qform .addbtn { border-radius: 10px; }
 .tabs { margin-top: 2px; }
 
+.backup { font-size: 13px; color: var(--muted); display: grid; gap: 6px; }
+.backup summary { cursor: pointer; text-align: center; font: 500 9px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--dim); padding: 4px 0; }
+.backup[open] { display: grid; }
+.backup .prow { margin: 6px 0; }
+#bkTxt { width: 100%; min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px; font: 400 12px var(--f-mono); color: var(--ink); resize: vertical; }
+
 /* quick view: just what matters right now */
 body.quick .full { display: none !important; }
 .qbtn { border: 0; background: transparent; padding: 6px 0; font: 500 10px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--want); white-space: nowrap; }
@@ -275,6 +281,12 @@ li.th { align-items: flex-start; padding-left: 10px; }
     </details>
   </section>
   <div class="note" id="note"></div>
+  <details class="backup">
+    <summary>Backup</summary>
+    <div class="hintline">Copy a backup and paste it in Notes. Paste it back here to restore it. Photos aren't included.</div>
+    <div class="prow"><button type="button" class="pbtn" id="bkCopy">Copy backup</button><button type="button" class="pbtn" id="bkRestore">Restore from pasted backup</button></div>
+    <textarea id="bkTxt" rows="3" placeholder="Paste a backup here" aria-label="Backup text"></textarea>
+  </details>
 </div>
 
 <div id="picView" hidden><img id="picImg" alt=""></div>
@@ -637,6 +649,21 @@ li.th { align-items: flex-start; padding-left: 10px; }
     try { if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {}); } catch {}
   }
 
+  // ---------- backup: copy everything as text, paste it back to restore (adds, never wipes)
+  $("bkCopy").addEventListener("click", async () => {
+    const txt = JSON.stringify({ app: "want-need", saved: new Date().toISOString(), tasks, thoughts: thoughts.map(t => ({ ...t, img: null })) });
+    try { await navigator.clipboard.writeText(txt); toast("Backup copied. Paste it in Notes."); }
+    catch { $("bkTxt").value = txt; $("bkTxt").select(); toast("Selected. Tap Copy."); }
+  });
+  $("bkRestore").addEventListener("click", () => {
+    let d; try { d = JSON.parse($("bkTxt").value); } catch { toast("That isn't a backup. Paste the whole thing."); return; }
+    const okId = id => typeof id === "string" && /^[\w.~:@+-]{1,200}$/.test(id);
+    let n = 0;
+    (Array.isArray(d && d.tasks) ? d.tasks : []).forEach(t => { if (t && okId(t.id) && typeof t.title === "string") { save(t); n++; } });
+    (Array.isArray(d && d.thoughts) ? d.thoughts : []).forEach(t => { if (t && okId(t.id)) { saveThought({ ...t, img: null }); n++; } });
+    $("bkTxt").value = ""; toast(n ? "Restored " + n + " items" : "Nothing to restore in that.");
+  });
+
   // ---------- start
   render(); renderFeed();
   (async () => {
@@ -648,12 +675,6 @@ li.th { align-items: flex-start; padding-left: 10px; }
     const lost = () => { $("note").textContent = "Lost the connection. Reload the page."; };
     store.watch(list => { tasks = list; loaded = true; if (!drag) render(); }, lost);
     sstore.watch(list => { thoughts = list; renderFeed(); }, lost);
-    // first time the standalone app opens, bring over the list from Claude
-    let seeded = true; try { seeded = !!localStorage.getItem("wn.seeded"); localStorage.setItem("wn.seeded", "1"); } catch {}
-    if (STANDALONE && !db && !seeded && !tasks.length) {
-      [["t_mvqcvg5gxmxt", "Oil change", 100, 0, 1793085605764], ["t_mvqcvpweq8lz", "Frankie vet", 0, 0, 1793085618398], ["t_mvqcw2tq7r4x", "Fix bike", 0, 100, 1793085635150]]
-        .forEach(([id, title, need, want, created]) => save({ id, title, need, want, urgent: false, remindAt: null, done: false, doneAt: null, created }));
-    }
   })();
 })();
 </script>

@@ -15,7 +15,7 @@
 <title>Want / Need</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: one column. Big button, add box, then one list grouped Urgent, Both, Need, Want. Every task has two up-and-down faders: red Need, acid Want.
    Colors and type are kriskoivisto.com: near-black zinc, acid green (#CCFF00), red (#E03A3E), cement; Anton, Manrope, JetBrains Mono.
@@ -227,6 +227,43 @@ li.th { align-items: flex-start; padding-left: 10px; }
 #toast button { border: 0; background: transparent; color: inherit; font-weight: 700; text-decoration: underline; padding: 0; }
 .note { font: 400 9px var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--dim); text-align: center; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* calmer look: soft colors, sentence case, no glow */
+:root {
+  --bg: #111113; --surface: #1B1B1F; --border: #2A2A30; --ink: #F2F2F4; --muted: #A1A1AA; --dim: #75757E;
+  --want: #6CCB8F; --need: #EE6F64; --need-text: #F2867C; --both: #C4C4CC;
+  --f-display: Manrope, -apple-system, BlinkMacSystemFont, sans-serif;
+  --f-mono: Manrope, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.tabs button, .addbtn, .chip, .pbtn, .toggle, .qlab, .note, .tm, .count, .qbtn, #oneTag, #one .acts button, .qnow .tag, .qnow .row button, .backup summary, .qhelp summary, .panel label, .fd small, .grp h2, .big, #oneT, .qnow .tt, .qlink span { text-transform: none !important; letter-spacing: 0 !important; }
+.count::before, .qlab::before, #oneTag::before { content: none !important; }
+.big { background: var(--ink); color: var(--bg); border: 0; box-shadow: none; font: 700 17px var(--f-body); padding: 13px; }
+.big:hover, .big:active { background: #FFFFFF; color: var(--bg); box-shadow: none; }
+.addbar #txt:focus { border-color: var(--muted); }
+.addbtn { font: 700 14px var(--f-body); }
+.tabs button { font: 600 14px var(--f-body); }
+.tabs button[aria-selected="true"] { border-bottom-color: var(--ink); }
+.tabs .count, .note, .tm, .backup summary, .qhelp summary { font: 500 12px var(--f-body); }
+.qbtn { font: 600 13px var(--f-body); color: var(--muted); }
+.grp h2 { font: 700 13px var(--f-body); margin: 14px 0 4px; }
+.chip { font: 600 11px var(--f-body); padding: 2px 8px; }
+.chip.r { border-color: var(--border); }
+.pbtn, .toggle { font: 600 13px var(--f-body); }
+.pbtn.cal { border-color: var(--border); color: var(--ink); }
+.panel label, .qlab { font: 600 12px var(--f-body); color: var(--muted); }
+#oneTag, .qnow .tag { font: 600 13px var(--f-body); }
+#oneT { font: 700 30px/1.15 var(--f-body); }
+.qnow { border: 1px solid var(--border); box-shadow: none; background: var(--surface); }
+.qnow .tt { font: 700 22px/1.2 var(--f-body); }
+.qnow .row button, #one .acts button { font: 600 14px var(--f-body); border-radius: 8px; }
+.qnow .row .go, #oneDone { background: var(--ink) !important; border-color: var(--ink) !important; color: var(--bg) !important; box-shadow: none !important; }
+#list li.urgent .t::after, #qNext li.urgent .t::after { color: var(--need); }
+.ptitle { width: 100%; min-width: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px; font: 500 16px var(--f-body); color: var(--ink); }
+.ptitle:focus, .tedit:focus { border-color: var(--muted); outline: none; }
+.th .tt { cursor: text; }
+.th .tt .ph { color: var(--dim); }
+.tedit { width: 100%; min-width: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font: 400 16px/1.35 var(--f-body); color: var(--ink); resize: vertical; }
+::selection { background: var(--want); color: var(--bg); }
 </style>
 </head>
 <body>
@@ -372,6 +409,7 @@ li.th { align-items: flex-start; padding-left: 10px; }
   const fader = (kind, v, label, id) => `<div class="fd"><div class="fader ${kind}" role="slider" tabindex="0" data-f="${kind}" aria-label="${kind === "need" ? "Need" : "Want"}: ${esc(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${v}" style="--v:${v}%"${id ? ` id="${id}"` : ""}><i></i></div><small class="${kind[0]}">${kind === "need" ? "N" : "W"}</small></div>`;
   function panel(t) {
     return `<li class="panel" data-id="${esc(t.id)}">
+      <input type="text" class="ptitle" id="ti_${esc(t.id)}" data-a="title" enterkeyhint="done" value="${esc(t.title)}" aria-label="Task name">
       <div class="prow">
         <button class="toggle" type="button" data-a="urgent" aria-pressed="${!!t.urgent}">Urgent</button>
         <input type="datetime-local" id="re_${esc(t.id)}" data-a="when" aria-label="Remind me" value="${t.remindAt ? toLocalInput(t.remindAt) : ""}">
@@ -417,7 +455,7 @@ li.th { align-items: flex-start; padding-left: 10px; }
     switch (b.dataset.a) {
       case "done": finish(t); break;
       case "del": { const was = { ...t }; if (openId === t.id) openId = null; del(t.id); toast("Deleted", () => save(was)); break; }
-      case "open": openId = openId === t.id ? null : t.id; render(); break;
+      case "open": openId = openId === t.id ? null : t.id; render(); if (openId) setTimeout(() => { const i = $("ti_" + t.id); if (i) i.focus({ preventScroll: true }); }, 0); break;
       case "close": openId = null; render(); break;
       case "urgent": save({ ...t, urgent: !t.urgent }); break;
       case "tneed": save({ ...t, need: needOf(t) >= 50 ? 0 : 100 }); break;
@@ -432,8 +470,9 @@ li.th { align-items: flex-start; padding-left: 10px; }
     }
   });
   $("list").addEventListener("change", e => {
-    if (e.target.dataset.a !== "when") return;
     const host = e.target.closest("[data-id]"); const t = host && tasks.find(x => x.id === host.dataset.id); if (!t) return;
+    if (e.target.dataset.a === "title") { const v = e.target.value.trim(); if (!v) { e.target.value = t.title; return; } if (v !== t.title) save({ ...t, title: v }); return; }
+    if (e.target.dataset.a !== "when") return;
     const v = e.target.value ? new Date(e.target.value).getTime() : null;
     if (v !== t.remindAt) save({ ...t, remindAt: v });
   });
@@ -497,7 +536,7 @@ li.th { align-items: flex-start; padding-left: 10px; }
   $("oneDone").addEventListener("click", () => { if (current) finish(current); skipped = []; show(); });
   $("oneSkip").addEventListener("click", () => { if (current) skipped.push(current.id); else skipped = []; show(); });
   $("oneBack").addEventListener("click", () => { $("one").hidden = true; });
-  document.addEventListener("keydown", e => { if (e.key === "Escape") { if (!$("picView").hidden) $("picView").hidden = true; else if (!$("one").hidden) $("one").hidden = true; else if (openId) { openId = null; render(); } } });
+  document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.classList && e.target.classList.contains("ptitle")) { e.target.blur(); return; } if (e.key === "Escape") { if (!$("picView").hidden) $("picView").hidden = true; else if (!$("one").hidden) $("one").hidden = true; else if (openId) { openId = null; render(); } } });
 
   // re-check reminders every 30 seconds while the page is open
   let sig = "";
@@ -516,13 +555,14 @@ li.th { align-items: flex-start; padding-left: 10px; }
   // ---------- stream of consciousness: thoughts, dictation (the keyboard mic), photos
   let thoughts = [], sstore = null, assets = null, pending = null;
   const picUrls = {};
+  let editThought = null;
   function saveThought(t) { thoughts = thoughts.filter(x => x.id !== t.id).concat([t]); renderFeed(); sstore && sstore.save(t).catch(oops); }
   function delThought(id) { thoughts = thoughts.filter(x => x.id !== id); renderFeed(); sstore && sstore.remove(id).catch(oops); }
   const stamp = ms => { const d = new Date(ms); return (dayKey(ms) === dayKey(Date.now()) ? "Today" : d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })) + " " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }); };
   function renderFeed() {
     const list = thoughts.slice().sort((a, b) => (b.created || 0) - (a.created || 0));
     $("feed").innerHTML = list.length ? list.map(t => `<li class="th" data-id="${esc(t.id)}"><div class="tb">
-        ${t.text ? `<div class="tt">${esc(t.text)}</div>` : ""}
+        ${editThought === t.id ? `<textarea class="tedit" id="te_${esc(t.id)}" rows="2" aria-label="Edit thought">${esc(t.text || "")}</textarea>` : `<div class="tt" data-a="sedit">${t.text ? esc(t.text) : `<span class="ph">Add words</span>`}</div>`}
         ${t.img && /^[A-Za-z0-9_-]{8,64}$/.test(t.img) ? (t.img[0] === "L" ? `<img data-local="${t.img}" alt="" data-a="zoom">` : `<img src="/_blob/${t.img}" alt="" loading="lazy" data-a="zoom">`) : ""}
         <div class="tm"><span>${esc(stamp(t.created || Date.now()))}</span>${t.tasked ? `<span class="on">On your list</span>` : `<button type="button" data-a="totask">Make it a task</button>`}</div>
       </div><button class="x" type="button" data-a="sdel" aria-label="Delete thought">×</button></li>`).join("")
@@ -575,6 +615,7 @@ li.th { align-items: flex-start; padding-left: 10px; }
   $("feed").addEventListener("click", e => {
     const b = e.target.closest("[data-a]"), li = e.target.closest("li[data-id]"); if (!b || !li) return;
     const t = thoughts.find(x => x.id === li.dataset.id); if (!t) return;
+    if (b.dataset.a === "sedit") { editThought = t.id; renderFeed(); const ta = $("te_" + t.id); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } return; }
     if (b.dataset.a === "zoom") { const src = t.img[0] === "L" ? picUrls[t.img] : "/_blob/" + t.img; if (src) { $("picImg").src = src; $("picView").hidden = false; } }
     else if (b.dataset.a === "totask") {
       save({ id: "t_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: (t.text || "Photo idea").slice(0, 140), need: 50, want: 50, urgent: false, remindAt: null, done: false, doneAt: null, created: Date.now() });
@@ -586,6 +627,14 @@ li.th { align-items: flex-start; padding-left: 10px; }
     }
   });
   $("picView").addEventListener("click", () => { $("picView").hidden = true; });
+  function endEdit(ta) {
+    const li = ta.closest("li[data-id]"); const t = li && thoughts.find(x => x.id === li.dataset.id); editThought = null;
+    if (!t) { renderFeed(); return; }
+    const v = ta.value.trim();
+    if (v !== (t.text || "")) saveThought({ ...t, text: v }); else renderFeed();
+  }
+  $("feed").addEventListener("focusout", e => { if (e.target.classList && e.target.classList.contains("tedit")) endEdit(e.target); });
+  $("feed").addEventListener("keydown", e => { if (e.target.classList && e.target.classList.contains("tedit") && e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); e.target.blur(); } });
 
   // ---------- quick view (open the link with #quick to land here)
   let quick = false; try { quick = location.hash === "#quick"; } catch {}

@@ -253,6 +253,61 @@ li.th { align-items: flex-start; padding-left: 10px; }
 .th .tt .ph { color: var(--dim); }
 .tedit { width: 100%; min-width: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font: 400 16px/1.35 var(--f-body); color: var(--ink); resize: vertical; }
 ::selection { background: var(--want); color: var(--bg); }
+
+/* themes. Auto follows the phone's light or dark setting. */
+:root, :root[data-wn="dark"] {
+  --bg: #121214; --surface: #1C1C20; --border: #2B2B31; --ink: #F2F2F4; --muted: #A1A1AA; --dim: #74747C;
+  --need: #F59E42; --need-text: #F7AE5E; --want: #5B93F7; --both: #C9C9D1; --on-ink: #121214; color-scheme: dark;
+}
+:root[data-wn="light"] {
+  --bg: #F7F7F5; --surface: #FFFFFF; --border: #E3E3DF; --ink: #1C1C1F; --muted: #67676E; --dim: #9A9AA1;
+  --need: #F07D1A; --need-text: #B85A06; --want: #3D7FF0; --both: #55555C; --on-ink: #FFFFFF; color-scheme: light;
+}
+@media (prefers-color-scheme: light) {
+  :root[data-wn="auto"] {
+    --bg: #F7F7F5; --surface: #FFFFFF; --border: #E3E3DF; --ink: #1C1C1F; --muted: #67676E; --dim: #9A9AA1;
+    --need: #F07D1A; --need-text: #B85A06; --want: #3D7FF0; --both: #55555C; --on-ink: #FFFFFF; color-scheme: light;
+  }
+}
+:root[data-wn="navy"] {
+  --bg: #0F1A2B; --surface: #17243A; --border: #25354F; --ink: #EEF2F8; --muted: #A3B2C8; --dim: #6E809A;
+  --need: #FFB454; --need-text: #FFC375; --want: #6CB6FF; --both: #C8D2E0; --on-ink: #0F1A2B; color-scheme: dark;
+}
+:root[data-wn="lilac"] {
+  --bg: #F4F2FA; --surface: #FFFFFF; --border: #E1DCEE; --ink: #221F2E; --muted: #6B6780; --dim: #9B97AE;
+  --need: #E8609E; --need-text: #B83A74; --want: #7C6CF2; --both: #57536A; --on-ink: #FFFFFF; color-scheme: light;
+}
+body { background: var(--bg); color: var(--ink); }
+.big, .big:hover, .big:active { background: var(--ink); color: var(--on-ink); }
+.addbtn { background: var(--ink); color: var(--on-ink); }
+.qnow .row .go, #oneDone { background: var(--ink) !important; border-color: var(--ink) !important; color: var(--on-ink) !important; }
+#toast { background: var(--ink); color: var(--on-ink); }
+.tg.need[aria-pressed="true"], .chip.u { color: var(--on-ink); }
+.themes { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; font: 500 12px var(--f-body); color: var(--dim); margin-top: 6px; }
+.themes button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 5px 10px; font: 600 12px var(--f-body); }
+.themes button[aria-checked="true"] { border-color: var(--ink); }
+.themes i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; box-shadow: inset 0 0 0 1px rgba(128,128,128,.5); }
+
+/* tighter */
+.wrap { gap: 8px; }
+.big { padding: 9px; font: 700 15px var(--f-body); border-radius: 10px; }
+.addbar #txt { padding: 8px 11px; }
+.addbar .addbtn { padding: 0 14px; font-size: 14px; }
+.tabs button { padding: 4px 0; font: 600 13px var(--f-body); }
+.grp h2 { margin: 8px 0 2px; font-size: 12px; }
+li .chk { width: 34px; min-height: 34px; }
+li .chk span { width: 18px; height: 18px; }
+li .mid { padding: 7px 0; gap: 2px; }
+li .t { font-size: 15px; line-height: 1.25; }
+li .x { width: 28px; height: 34px; font-size: 16px; }
+#list li.urgent .t::after, #qNext li.urgent .t::after { content: none; }
+li .faders { gap: 10px; padding: 3px 2px 3px 6px; }
+li .fader { height: 28px; width: 18px; border-radius: 4px; }
+li .fader i { border-radius: 0 0 4px 4px; }
+li .fd { padding: 5px 5px; margin: -5px -5px; }
+.fader i::before { left: 0; right: 0; top: -1px; height: 3px; background: var(--ink); }
+.fader[aria-valuenow="0"] i::before { opacity: .35; }
+.panel { padding: 8px 10px; gap: 6px; }
 </style>
 
 <div class="wrap">
@@ -306,6 +361,14 @@ li.th { align-items: flex-start; padding-left: 10px; }
     </details>
   </section>
   <div class="note" id="note"></div>
+  <div class="themes" id="themes" role="radiogroup" aria-label="Theme">
+    <span>Theme</span>
+    <button type="button" data-th="auto">Auto</button>
+    <button type="button" data-th="light"><i style="background:#F7F7F5"></i>Light</button>
+    <button type="button" data-th="dark"><i style="background:#18181B"></i>Dark</button>
+    <button type="button" data-th="navy"><i style="background:#13213A"></i>Navy</button>
+    <button type="button" data-th="lilac"><i style="background:#EEEAF8"></i>Lilac</button>
+  </div>
   <details class="backup">
     <summary>Backup</summary>
     <div class="hintline">Copy a backup and paste it in Notes. Paste it back here to restore it. Photos aren't included.</div>
@@ -413,7 +476,6 @@ li.th { align-items: flex-start; padding-left: 10px; }
   }
   function row(t) {
     const chips = [];
-    if (t.urgent) chips.push(`<span class="chip u">Urgent</span>`);
     if (t.remindAt) chips.push(`<span class="chip ${ringing(t) ? "now" : "r"}">${ringing(t) ? "Now" : esc(fmtWhen(t.remindAt))}</span>`);
     return `<li data-id="${esc(t.id)}" class="${t.urgent ? "urgent" : ""}">
       <button class="chk" type="button" data-a="done" aria-label="Done: ${esc(t.title)}"><span></span></button>
@@ -721,6 +783,15 @@ li.th { align-items: flex-start; padding-left: 10px; }
     (Array.isArray(d && d.thoughts) ? d.thoughts : []).forEach(t => { if (t && okId(t.id)) { saveThought({ ...t, img: null }); n++; } });
     $("bkTxt").value = ""; toast(n ? "Restored " + n + " items" : "Nothing to restore in that.");
   });
+
+  // ---------- theme (kept on this device)
+  function setTheme(th) {
+    document.documentElement.dataset.wn = th; try { localStorage.setItem("wn.theme", th); } catch {}
+    document.querySelectorAll("#themes [data-th]").forEach(b => { b.setAttribute("role", "radio"); b.setAttribute("aria-checked", String(b.dataset.th === th)); });
+  }
+  let th0 = "auto"; try { th0 = localStorage.getItem("wn.theme") || "auto"; } catch {}
+  setTheme(th0);
+  $("themes").addEventListener("click", e => { const b = e.target.closest("[data-th]"); if (b) setTheme(b.dataset.th); });
 
   // ---------- start
   render(); renderFeed();

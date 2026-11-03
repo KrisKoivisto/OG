@@ -277,6 +277,17 @@ li.th { align-items: flex-start; padding-left: 10px; }
   --bg: #F4F2FA; --surface: #FFFFFF; --border: #E1DCEE; --ink: #221F2E; --muted: #6B6780; --dim: #9B97AE;
   --need: #E8609E; --need-text: #B83A74; --want: #7C6CF2; --both: #57536A; --on-ink: #FFFFFF; color-scheme: light;
 }
+/* cement, hyper red and volt */
+:root[data-wn="cement"] {
+  --bg: #CFCECA; --surface: #E4E3DF; --border: #B4B3AF; --ink: #111111; --muted: #46464A; --dim: #77767A;
+  --need: #E10600; --need-text: #B80500; --want: #C8F000; --want-text: #4F6000; --both: #2E2E30; --on-ink: #F2F2F0; color-scheme: light;
+}
+:root[data-wn="blacktop"] {
+  --bg: #0E0E0E; --surface: #1A1A19; --border: #2C2C2A; --ink: #F2F2F0; --muted: #A6A5A1; --dim: #6E6D6A;
+  --need: #FF2A1F; --need-text: #FF4D44; --want: #CEFF00; --want-text: #CEFF00; --both: #C9C8C4; --on-ink: #0E0E0E; color-scheme: dark;
+}
+:root { --want-text: var(--want); }
+:root[data-wn="cement"] { --want-text: #4F6000; }
 body { background: var(--bg); color: var(--ink); }
 .big, .big:hover, .big:active { background: var(--ink); color: var(--on-ink); }
 .addbtn { background: var(--ink); color: var(--on-ink); }
@@ -368,6 +379,8 @@ li .fd { padding: 5px 5px; margin: -5px -5px; }
     <button type="button" data-th="dark"><i style="background:#18181B"></i>Dark</button>
     <button type="button" data-th="navy"><i style="background:#13213A"></i>Navy</button>
     <button type="button" data-th="lilac"><i style="background:#EEEAF8"></i>Lilac</button>
+    <button type="button" data-th="cement"><i style="background:#CFCECA"></i>Cement</button>
+    <button type="button" data-th="blacktop"><i style="background:#0E0E0E"></i>Blacktop</button>
   </div>
   <details class="backup">
     <summary>Backup</summary>
@@ -405,7 +418,7 @@ li .fd { padding: 5px 5px; margin: -5px -5px; }
   const ringing = t => !t.done && t.remindAt && t.remindAt <= Date.now();
   const groupOf = t => t.urgent || ringing(t) ? "urgent" : needOf(t) >= 50 && wantOf(t) >= 50 ? "both" : needOf(t) >= 50 ? "need" : wantOf(t) >= 50 ? "want" : "none";
   const GROUPS = [["urgent", "Urgent"], ["both", "Need + Want"], ["need", "Need"], ["want", "Want"], ["none", "Sort later"]];
-  const groupColor = { urgent: "var(--need-text)", both: "var(--both)", need: "var(--need-text)", want: "var(--want)", none: "var(--muted)" };
+  const groupColor = { urgent: "var(--need-text)", both: "var(--both)", need: "var(--need-text)", want: "var(--want-text)", none: "var(--muted)" };
   let tasks = [], store = null, loaded = false, current = null, skipped = [], undoFn = null, toastT = null, openId = null;
   let draft = { need: 50, want: 50, urgent: false };
 

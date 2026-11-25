@@ -252,7 +252,7 @@ input[type=range]{width:100%;accent-color:var(--act)}
       <div><span><svg class="ic" width="24" height="24"><use href="#i-send"/></svg></span>You post it</div>
     </div>
     <label class="f"><span class="fl">What is it?</span>
-      <input id="add-name" class="in" placeholder="Sceptre 24 inch monitor" autocomplete="off"></label>
+      <input id="add-name" class="in" placeholder="Name, model number or a link" autocomplete="off"></label>
     <label class="drop" for="pick">
       <svg class="ic" width="40" height="40"><use href="#i-cam"/></svg>
       <strong>Add photos</strong>
@@ -653,10 +653,13 @@ function addStatus(msg) { const el = $("#add-status"); el.hidden = !msg; el.text
 async function addItem(useAI) {
   if (adding) return;
   if (!S.db) { addStatus("Your inventory isn't connected, so this can't be saved. Open this page inside Claude."); return; }
-  const name = $("#add-name").value.trim();
-  if (!S.picked.length && !name) { addStatus("Type what it is, or add a photo."); return; }
+  const typed = $("#add-name").value.trim();
+  const link = /^https?:\/\//i.test(typed) ? typed : "";
+  const name = link ? "" : typed;
+  if (!S.picked.length && !typed) { addStatus("Type what it is, or add a photo."); return; }
   adding = true; $("#add-ai").disabled = $("#add-plain").disabled = true;
   const notes = $("#add-notes").value.trim(), cost = num($("#add-cost").value);
+  const aiNotes = [notes, link ? "The seller pasted this product link. You can't open links, so read the brand and exact model from its text if they are there: " + link.slice(0, 500) : ""].filter(Boolean).join("\n\n");
   try {
     addStatus(S.picked.length ? "Getting the photos ready…" : "Saving…");
     const blobs = await Promise.all(S.picked.map(p => shrink(p.file)));
@@ -664,7 +667,7 @@ async function addItem(useAI) {
     let aiP = Promise.resolve();
     if (useAI) {
       addCtl = new AbortController(); $("#add-stop").hidden = false;
-      aiP = identify(blobs, notes, addCtl.signal, name).then(r => { ai = fromAI(r); }, e => { aiNote = sampleMsg(e); });
+      aiP = identify(blobs, aiNotes, addCtl.signal, name).then(r => { ai = fromAI(r); }, e => { aiNote = sampleMsg(e); });
     }
     const ids = []; let failed = 0;
     if (S.assets) {
@@ -678,7 +681,7 @@ async function addItem(useAI) {
     const t = nowISO();
     const item = { title: "", brand: "", model: "", category: "", size: "", color: "", condition: "", flaws: [], unsure: [], description: "",
       keywords: [], search: "", est: null, bestSites: [], confidence: "", ask: [], picks: [], pick: "", suggest: null, facts: [], ...(ai || {}),
-      photos: ids, cost, price: null, floor: null, comps: [], posts: {}, sold: null, spot: "", notes, createdAt: t, updatedAt: t };
+      link, photos: ids, cost, price: null, floor: null, comps: [], posts: {}, sold: null, spot: "", notes, createdAt: t, updatedAt: t };
     if (!item.title) item.title = name.slice(0, 80);
     if (!item.search) item.search = name;
     item.status = statusOf(item);
@@ -738,7 +741,7 @@ function openItem(id, seed) {
   if (!it) return;
   cur = clone(it); curId = id; pending = {};
   cur.posts = cur.posts || {}; cur.photos = cur.photos || []; cur.flaws = cur.flaws || []; cur.comps = cur.comps || []; cur.keywords = cur.keywords || [];
-  cur.ask = cur.ask || []; cur.picks = cur.picks || []; cur.facts = cur.facts || [];
+  cur.ask = cur.ask || []; cur.picks = cur.picks || []; cur.facts = cur.facts || []; cur.link = cur.link || "";
   document.documentElement.style.overflow = "hidden";
   renderSheet(); $("#sheet").hidden = false; $("#sheet").scrollTop = 0;
 }
@@ -811,11 +814,16 @@ function renderSheet() {
   const drawPin = () => {
     pin.replaceChildren();
     const open = cur.ask.length || cur.picks.length;
-    pin.hidden = !(open || cur.suggest || cur.facts.length);
+    pin.hidden = !(open || cur.suggest || cur.facts.length || S.sample);
     if (pin.hidden) return;
     pin.append(h("div", { class: "row" }, h("span", { class: "sico" }, ic("spark", 18)), h("h3", { class: "grow" }, open ? "Pin it down" : "Pinned down"),
       cur.model && h("span", { class: "pill good" }, ic("check", 12), cur.model)));
     if (cur.facts.length) pin.append(h("div", { class: "chips wrapc" }, cur.facts.map(f => h("span", { class: "pill" }, f.a || f))));
+    const linkIn = h("input", { class: "in", id: "it-link", inputmode: "url", autocomplete: "off", placeholder: "Paste a product link or model number" });
+    linkIn.value = cur.link || "";
+    linkIn.addEventListener("input", () => { cur.link = linkIn.value.trim(); queueSave({ link: cur.link }); });
+    pin.append(h("div", { class: "f" }, h("span", { class: "fl" }, "Got a link or model number?"),
+      h("div", { class: "row" }, h("div", { class: "grow" }, linkIn), httpsOnly(cur.link) && h("a", { class: "btn sm", href: httpsOnly(cur.link), target: "_blank", rel: "noopener" }, "Open", ic("out", 14)))));
     cur.ask.forEach((q, i) => {
       const chip = opt => h("button", { class: "chip", type: "button", "aria-pressed": String(q.a === opt), onclick: () => {
         cur.ask = cur.ask.map((x, j) => j === i ? { ...x, a: x.a === opt ? "" : opt } : x); queueSave({ ask: cur.ask }); drawPin();
@@ -828,16 +836,17 @@ function renderSheet() {
         c.high ? h("span", { class: "mono" }, money(c.low) + "–" + money(c.high)) : null))));
     if (cur.suggest && cur.suggest.price) pin.append(h("div", { class: "row" },
       h("span", { class: "sticker big" }, money(cur.suggest.price)),
-      h("span", { class: "grow small" }, h("strong", null, open ? "Price so far" : "Suggested price"), h("span", { class: "muted", style: "display:block" }, (cur.suggest.floor ? "Take " + money(cur.suggest.floor) + " or more. " : "") + "From memory, so check sold prices.")),
+      h("span", { class: "grow small" }, h("strong", null, open ? "Price so far" : "Suggested price"), h("span", { class: "muted", style: "display:block" }, (cur.suggest.floor ? "Take " + money(cur.suggest.floor) + " or more. " : "") + (cur.suggest.note || "From memory, so check sold prices."))),
       cur.price !== cur.suggest.price && h("button", { class: "btn sm", type: "button", onclick: () => {
         const patch = { price: cur.suggest.price }; if (cur.suggest.floor && !cur.floor) patch.floor = cur.suggest.floor;
         Object.assign(cur, patch); queueSave(patch);
         $("#it-price").value = cur.price; if (patch.floor) $("#it-floor").value = cur.floor;
         drawGauge(); drawPosts(); drawPin(); toast("Price set to " + money(cur.price));
       } }, ic("check", 16), "Use it")));
-    if (open && S.sample) {
-      const answered = cur.ask.some(q => q.a) || cur.pick;
-      pin.append(h("div", { class: "row" }, h("button", { class: "btn pri", type: "button", id: "it-refine", onclick: refine }, ic("spark", 18), answered ? "Get my price" : "Skip the questions, get a price")));
+    if (S.sample) {
+      const answered = cur.ask.some(q => q.a) || cur.pick || cur.link;
+      const label = !open && cur.suggest ? "Redo the price" : answered || !open ? "Get my price" : "Skip the questions, get a price";
+      pin.append(h("div", { class: "row" }, h("button", { class: !open && cur.suggest ? "btn" : "btn pri", type: "button", id: "it-refine", onclick: refine }, ic("spark", 18), label)));
     }
   };
   drawPin();
@@ -1044,7 +1053,8 @@ async function refine() {
   const said = [...cur.facts.map(f => f.q ? f.q + " " + f.a : String(f)), ...cur.ask.filter(q => q.a).map(q => q.q + " " + q.a)];
   if (cur.pick) said.push("The exact model is: " + cur.pick);
   const known = [["Brand", cur.brand], ["Model", cur.model], ["Size", cur.size], ["Color", cur.color], ["Condition", cur.condition], ["Flaws", cur.flaws.join("; ")]].filter(x => x[1]).map(x => x[0] + ": " + x[1]);
-  const notes = [cur.notes, known.length ? "Already on the listing:\n" + known.join("\n") : "",
+  const linkNote = cur.link ? "The seller pasted this product link or model number. You can't open links, so read the brand and exact model from its text if they are there: " + cur.link.slice(0, 500) : "";
+  const notes = [cur.notes, linkNote, known.length ? "Already on the listing:\n" + known.join("\n") : "",
     said.length ? "Answers the seller already gave. Use them and don't ask these again:\n- " + said.join("\n- ") : ""].filter(Boolean).join("\n\n");
   try {
     const ai = fromAI(await identify(blobs, notes, undefined, cur.title || ""));

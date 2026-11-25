@@ -2,12 +2,13 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600&display=swap">
 <style>
-/* Layout: one shelf of item rows, each with a yellow price sticker. Tabs sit at the thumb on phones, in the header on wide screens. */
+/* Layout: a wall of photo cards with yellow price stickers under a small dashboard. Tabs sit at the thumb on phones, in the header on wide screens. */
 :root{
   --bg:#EEF1ED; --surface:#FFFFFF; --ink:#15201B; --muted:#5A6A62; --line:#D3DBD5;
   --tag:#F6C628; --tag-ink:#1B1A10;
   --act:#17694B; --act-ink:#FFFFFF; --act-soft:#DDEDE4;
   --warn:#8F4E00; --warn-soft:#FBEBD0; --info:#1F5FA8; --info-soft:#DCE8F7; --bad:#B3261E;
+  --s1:#257de0; --s2:#f47230; --s3:#00b894; --s4:#f2a600; --s5:#ee7fac; --s6:#008a17;
   --font-d:"Bricolage Grotesque","Inter",system-ui,sans-serif;
   --font-b:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   --font-m:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
@@ -18,6 +19,7 @@
     --tag:#F6C628; --tag-ink:#1B1A10;
     --act:#5CC198; --act-ink:#0B1A13; --act-soft:#1D332A;
     --warn:#F0B35A; --warn-soft:#3A2C12; --info:#8DB8F0; --info-soft:#1B2A3F; --bad:#FF8A80;
+    --s1:#338ced; --s2:#e76624; --s3:#00a888; --s4:#d28e05; --s5:#e24d8b; --s6:#0aac23;
     color-scheme:dark;
   }
 }
@@ -26,20 +28,23 @@
   --tag:#F6C628; --tag-ink:#1B1A10;
   --act:#5CC198; --act-ink:#0B1A13; --act-soft:#1D332A;
   --warn:#F0B35A; --warn-soft:#3A2C12; --info:#8DB8F0; --info-soft:#1B2A3F; --bad:#FF8A80;
+  --s1:#338ced; --s2:#e76624; --s3:#00a888; --s4:#d28e05; --s5:#e24d8b; --s6:#0aac23;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--font-b);font-size:15px;line-height:1.45;padding-bottom:84px}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-b);font-size:15px;line-height:1.45;padding-bottom:88px}
 h1,h2,h3{font-family:var(--font-d);margin:0;text-wrap:balance;line-height:1.15}
-h1{font-size:1.45rem;font-weight:700;letter-spacing:-.01em}
-h2{font-size:1.2rem;font-weight:700}
+h1{font-size:1.4rem;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+h1 .logo{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:6px;background:var(--tag);color:var(--tag-ink);transform:rotate(-6deg)}
+h2{font-size:1.25rem;font-weight:700}
 h3{font-size:1rem;font-weight:600}
 p{margin:0}
 a{color:var(--act)}
-.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px 10px}
+.ic{flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.wrap{max-width:900px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px 12px}
 .muted{color:var(--muted)}
-.small{font-size:.85rem}
+.small{font-size:.84rem}
 .mono{font-family:var(--font-m);font-variant-numeric:tabular-nums}
 .stack{display:flex;flex-direction:column;gap:14px}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -48,62 +53,85 @@ a{color:var(--act)}
 /* nav */
 #nav{position:fixed;inset:auto 0 0 0;z-index:20;display:flex;background:var(--surface);border-top:1px solid var(--line);
   padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
-#nav a{flex:1;text-align:center;text-decoration:none;color:var(--muted);font-weight:600;font-size:.9rem;padding:11px 4px;border-radius:8px}
+#nav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none;color:var(--muted);font-weight:600;font-size:.74rem;padding:7px 4px;border-radius:10px}
 #nav a[aria-current="page"]{color:var(--act);background:var(--act-soft)}
-#nav a.add{color:var(--act)}
+#nav a.add .bub{display:flex;align-items:center;justify-content:center;width:44px;height:30px;border-radius:15px;background:var(--act);color:var(--act-ink)}
 @media (min-width:720px){
   body{padding-bottom:32px}
   #nav{position:static;border:0;background:none;padding:0;gap:4px}
-  #nav a{flex:none;padding:8px 14px}
+  #nav a{flex:none;flex-direction:row;gap:7px;font-size:.9rem;padding:8px 14px}
+  #nav a.add .bub{width:auto;height:auto;background:none;color:inherit}
 }
 
 /* controls */
-.btn{font:inherit;font-weight:600;font-size:.9rem;min-height:42px;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-align:center}
+.btn{font:inherit;font-weight:600;font-size:.9rem;min-height:42px;padding:8px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;text-align:center}
 .btn:hover{border-color:var(--muted)}
 .btn.pri{background:var(--act);border-color:var(--act);color:var(--act-ink)}
-.btn.sm{min-height:36px;padding:5px 11px;font-size:.84rem}
+.btn.sm{min-height:38px;padding:5px 12px;font-size:.84rem}
 .btn.danger{color:var(--bad)}
 .btn:disabled{opacity:.5;cursor:default}
 :focus-visible{outline:2px solid var(--act);outline-offset:2px}
-.in{font:inherit;font-size:16px;width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
-textarea.in{resize:vertical;min-height:92px;line-height:1.4}
+.in{font:inherit;font-size:16px;width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+textarea.in{resize:vertical;min-height:84px;line-height:1.4}
 .f{display:flex;flex-direction:column;gap:5px;min-width:0}
-.fl{font-size:.74rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.fl{font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .fh{font-size:.8rem;color:var(--muted)}
-.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.chips.wrapc{flex-wrap:wrap;overflow:visible}
 .chip{font:inherit;font-size:.84rem;font-weight:600;white-space:nowrap;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
-.note{background:var(--warn-soft);color:var(--ink);border-radius:8px;padding:10px 12px;font-size:.88rem}
-.note.info{background:var(--info-soft)}
-.note.good{background:var(--act-soft)}
-
-/* shelf */
-#sum{display:flex;flex-wrap:wrap;gap:6px 22px;font-size:.9rem;color:var(--muted)}
-#sum b{color:var(--ink);font-family:var(--font-m);font-weight:600}
-#list{display:flex;flex-direction:column;border-top:1px solid var(--line)}
-.item{display:flex;gap:12px;align-items:center;padding:12px 0;border:0;border-bottom:1px solid var(--line);background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;width:100%}
-.item:hover .ititle{text-decoration:underline}
-.thumb{flex:none;width:58px;height:58px;border-radius:6px;object-fit:cover;background:var(--line)}
-.thumb.none{display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--muted)}
-.ititle{font-weight:600;overflow-wrap:anywhere}
-.isub{font-size:.84rem;color:var(--muted);overflow-wrap:anywhere}
-.pill{display:inline-block;font-size:.72rem;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--line);color:var(--ink);white-space:nowrap}
+.chip b{font-family:var(--font-m);font-weight:600;margin-left:4px}
+.fchip{display:inline-flex;align-items:center;gap:6px;font-size:.86rem;padding:5px 6px 5px 11px;border-radius:999px;background:var(--warn-soft);color:var(--ink)}
+.fchip button{font:inherit;border:0;background:none;color:var(--muted);cursor:pointer;width:24px;height:24px;border-radius:50%;line-height:1}
+.note{display:flex;gap:10px;align-items:flex-start;background:var(--warn-soft);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:.88rem}
+.note .ic{color:var(--warn);margin-top:1px}
+.note.info{background:var(--info-soft)} .note.info .ic{color:var(--info)}
+.note.good{background:var(--act-soft)} .note.good .ic{color:var(--act)}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--line);color:var(--ink);white-space:nowrap}
 .pill.listed{background:var(--info-soft);color:var(--info)}
-.pill.sold{background:var(--act-soft);color:var(--act)}
-.pill.ready{background:var(--warn-soft);color:var(--warn)}
-.pill.stale{background:var(--warn-soft);color:var(--warn)}
-.sticker{flex:none;font-family:var(--font-m);font-weight:600;font-size:.95rem;background:var(--tag);color:var(--tag-ink);padding:5px 9px;border-radius:3px;transform:rotate(-2deg);box-shadow:0 1px 0 rgba(0,0,0,.18)}
-.sticker.blank{background:none;color:var(--muted);box-shadow:none;border:1px dashed var(--line);transform:none;font-weight:500}
-.empty{padding:36px 0;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
-.empty p{max-width:44ch;color:var(--muted)}
+.pill.sold,.pill.good{background:var(--act-soft);color:var(--act)}
+.pill.ready,.pill.stale{background:var(--warn-soft);color:var(--warn)}
+.dot{display:inline-block;flex:none;width:10px;height:10px;border-radius:50%;background:var(--muted)}
+.sticker{flex:none;font-family:var(--font-m);font-weight:600;font-size:.95rem;background:var(--tag);color:var(--tag-ink);padding:4px 9px;border-radius:3px;transform:rotate(-3deg);box-shadow:0 1px 0 rgba(0,0,0,.2)}
+
+/* dashboard */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0;display:flex;flex-direction:column;gap:2px}
+.kpi b{font-family:var(--font-d);font-size:clamp(1.25rem,6vw,1.9rem);font-weight:700;line-height:1.1;overflow-wrap:anywhere}
+.kpi .fl{display:flex;align-items:center;gap:5px}
+.kpi small{font-size:.78rem;color:var(--muted)}
+.pipe{display:flex;gap:2px;height:12px}
+.pipe i{display:block;min-width:6px;border-radius:3px}
+.pipe .none{flex:1;background:var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:.84rem;margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend b{font-family:var(--font-m);font-weight:600}
+
+/* shelf cards */
+#list{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;text-align:left;padding:0;display:flex;flex-direction:column;cursor:pointer;color:inherit;font:inherit;min-width:0}
+.card:hover{border-color:var(--muted)}
+.pic{position:relative;aspect-ratio:1/1;background:var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.pic .sticker{position:absolute;right:8px;bottom:8px}
+.pic .pill{position:absolute;left:8px;top:8px}
+.meta{padding:9px 11px 11px;display:flex;flex-direction:column;gap:6px}
+.ititle{font-weight:600;font-size:.9rem;line-height:1.3;overflow-wrap:anywhere}
+.sub{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:.76rem;color:var(--muted)}
+.empty{grid-column:1/-1;padding:28px 0;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.empty p{max-width:40ch;color:var(--muted)}
 
 /* add */
-.drop{display:flex;flex-direction:column;align-items:center;gap:6px;padding:26px 16px;border:2px dashed var(--line);border-radius:12px;background:var(--surface);cursor:pointer;text-align:center}
-.drop strong{font-family:var(--font-d);font-size:1.1rem}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;font-size:.8rem;font-weight:600}
+.how div{display:flex;flex-direction:column;align-items:center;gap:6px}
+.how span{display:flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:14px;background:var(--act-soft);color:var(--act)}
+.drop{display:flex;flex-direction:column;align-items:center;gap:8px;padding:26px 16px;border:2px dashed var(--muted);border-radius:16px;background:var(--surface);cursor:pointer;text-align:center}
+.drop strong{font-family:var(--font-d);font-size:1.15rem}
+.drop .ic{color:var(--act)}
 .thumbs{display:flex;gap:8px;flex-wrap:wrap}
 .ph{position:relative;width:86px}
-.ph img{width:86px;height:86px;object-fit:cover;border-radius:8px;background:var(--line);display:block}
+.ph img{width:86px;height:86px;object-fit:cover;border-radius:10px;background:var(--line);display:block}
 .ph button{margin-top:4px;width:100%}
 
 /* sheet */
@@ -111,60 +139,130 @@ textarea.in{resize:vertical;min-height:92px;line-height:1.4}
 .shead{position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--line)}
 .shead .wrap{display:flex;align-items:center;gap:12px;padding-block:calc(env(safe-area-inset-top,0px) + 10px) 10px}
 .sbody{padding-block:16px calc(40px + env(safe-area-inset-bottom,0px))}
-.sec{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.strip .ph{width:132px;flex:none}
+.strip .ph img{width:132px;height:132px}
+.steps{display:flex;gap:5px}
+.step{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;font-size:.7rem;font-weight:600;color:var(--muted);text-align:center}
+.step i{display:block;width:100%;height:6px;border-radius:3px;background:var(--line)}
+.step.done{color:var(--ink)} .step.done i{background:var(--act)}
+.sec{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px}
+details.sec{padding:0;display:block}
+details.sec>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer}
+details.sec>summary::-webkit-details-marker{display:none}
+.sico{width:34px;height:34px;border-radius:10px;background:var(--act-soft);color:var(--act);display:flex;align-items:center;justify-content:center;flex:none}
+.ssum{margin-left:auto;font-size:.84rem;color:var(--muted);text-align:right;min-width:0;overflow-wrap:anywhere}
+.chev{color:var(--muted);transition:transform .15s}
+details[open]>summary .chev{transform:rotate(90deg)}
+.inner{padding:2px 16px 16px;display:flex;flex-direction:column;gap:14px}
 .site{display:flex;flex-direction:column;gap:9px;padding-top:14px;border-top:1px solid var(--line)}
-.site:first-of-type{border-top:0;padding-top:0}
-.site h3{flex:1 1 auto}
+.site:first-child{border-top:0;padding-top:0}
+.bar{height:8px;border-radius:0 4px 4px 0;background:var(--line);position:relative}
+.bar i{display:block;height:100%;border-radius:0 4px 4px 0;background:var(--act)}
 .check{display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer}
 .check input{width:20px;height:20px;accent-color:var(--act)}
-ul.plain{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
-.log{font-size:.88rem;display:flex;flex-direction:column;gap:6px}
+
+/* price gauge */
+.gauge{position:relative;height:78px;margin:0 6px}
+.g-track{position:absolute;left:0;right:0;top:35px;height:8px;border-radius:4px;background:var(--line)}
+.g-band{position:absolute;top:35px;height:8px;border-radius:4px;background:var(--act)}
+.g-comp{position:absolute;top:32px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--s1);border:2px solid var(--surface)}
+.g-ask{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center}
+.g-ask::after{content:"";width:2px;height:22px;background:var(--ink)}
+.g-ask span{font-family:var(--font-m);font-weight:600;font-size:.8rem;background:var(--tag);color:var(--tag-ink);padding:2px 7px;border-radius:3px;white-space:nowrap}
+.g-floor{position:absolute;top:35px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center}
+.g-floor::before{content:"";width:2px;height:16px;background:var(--muted)}
+.g-floor span{font-family:var(--font-m);font-size:.76rem;color:var(--muted);white-space:nowrap;margin-top:3px}
+
+/* fee chart */
+.fee{display:grid;grid-template-columns:minmax(92px,auto) 1fr auto;gap:8px 10px;align-items:center;font-size:.86rem}
+.fee .nm{display:flex;align-items:center;gap:7px;font-weight:600}
+.fee .val{font-family:var(--font-m);font-variant-numeric:tabular-nums;text-align:right}
+.fee .trk{height:14px}
+.fee .trk i{display:block;height:100%;min-width:2px;border-radius:0 4px 4px 0;background:var(--act)}
+input[type=range]{width:100%;accent-color:var(--act)}
 
 /* trends */
-.tr{display:flex;flex-direction:column;gap:4px;padding:12px 0;border-top:1px solid var(--line)}
-.tr:first-child{border-top:0;padding-top:0}
-.tr p{max-width:65ch}
+.tgroup{display:flex;flex-direction:column;gap:10px}
+.thead{display:flex;align-items:center;gap:8px}
+.thead .sico.hot{background:var(--act-soft);color:var(--act)}
+.thead .sico.soon{background:var(--info-soft);color:var(--info)}
+.thead .sico.glut{background:var(--warn-soft);color:var(--warn)}
+.tcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.tcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px;display:flex;flex-direction:column;gap:7px}
+.tcard p{font-size:.88rem}
 
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;font-size:.9rem;max-width:min(92vw,460px);text-align:center}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(100px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:.9rem;max-width:min(92vw,460px);text-align:center}
 #copybox{position:fixed;inset:auto 0 0 0;z-index:60;background:var(--surface);border-top:1px solid var(--line);padding:14px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px}
-@media (prefers-reduced-motion:no-preference){ .btn,.chip{transition:border-color .12s, background-color .12s} }
+@media (prefers-reduced-motion:reduce){ .chev{transition:none} }
 </style>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7.5l9-4.5 9 4.5v9L12 21l-9-4.5v-9z M3 7.5l9 4.5 9-4.5 M12 12v9"/></symbol>
+  <symbol id="i-cam" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8 M15 7h6v6"/></symbol>
+  <symbol id="i-store" viewBox="0 0 24 24"><path d="M4 9l1-5h14l1 5 M5 10v10h14V10 M4 9a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0A2.7 2.7 0 0 0 20 9 M10 20v-5h4v5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5 M6 11l6-6 6 6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14 M6 13l6 6 6-6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M14 4h6v6 M20 4l-9 9 M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8L3 12z"/><circle cx="7.5" cy="8.5" r="1.2"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z M14 7l3 3"/></symbol>
+  <symbol id="i-cash" viewBox="0 0 24 24"><path d="M12 3v18 M16.5 7.5C16 6 14.3 5 12 5 9.5 5 7.5 6.3 7.5 8.5c0 5 9 2.5 9 7 0 2.2-2 3.5-4.5 3.5-2.6 0-4.4-1.2-4.9-3"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3L10 14 M21 3l-7 18-4-7-7-4 18-7z"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.3"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 4l9 16H3L12 4z M12 10v5 M12 17.5v.5"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M12 4v11 M7 11l5 5 5-5 M5 20h14"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+</svg>
+
 <header class="top"><div class="wrap">
-  <h1>Resale Stockroom</h1>
+  <h1><span class="logo"><svg class="ic" width="18" height="18"><use href="#i-tag"/></svg></span>Resale Stockroom</h1>
   <nav id="nav" aria-label="Sections">
-    <a href="#shelf" data-v="shelf">Shelf</a>
-    <a href="#add" data-v="add" class="add">+ Add</a>
-    <a href="#trends" data-v="trends">Trends</a>
-    <a href="#sites" data-v="sites">Sites</a>
+    <a href="#shelf" data-v="shelf"><svg class="ic" width="22" height="22"><use href="#i-box"/></svg>Shelf</a>
+    <a href="#add" data-v="add" class="add"><span class="bub"><svg class="ic" width="20" height="20"><use href="#i-cam"/></svg></span>Add</a>
+    <a href="#trends" data-v="trends"><svg class="ic" width="22" height="22"><use href="#i-trend"/></svg>Trends</a>
+    <a href="#sites" data-v="sites"><svg class="ic" width="22" height="22"><use href="#i-store"/></svg>Sites</a>
   </nav>
 </div></header>
 
 <main class="wrap">
   <section id="v-shelf" class="stack">
-    <div id="sum"></div>
-    <input id="q" class="in" type="search" placeholder="Search your items" aria-label="Search your items">
+    <div id="dash" class="stack"></div>
+    <input id="q" class="in" type="search" placeholder="Search" aria-label="Search your items">
     <div id="chips" class="chips"></div>
     <div id="shelfnote" class="note" hidden></div>
     <div id="list"></div>
-    <div class="row"><button id="csv" class="btn sm" hidden>Save the list as a spreadsheet</button></div>
+    <div class="row"><button id="csv" class="btn sm" hidden></button></div>
   </section>
 
   <section id="v-add" class="stack" hidden>
     <h2>Add an item</h2>
+    <div class="how">
+      <div><span><svg class="ic" width="24" height="24"><use href="#i-cam"/></svg></span>Snap it</div>
+      <div><span><svg class="ic" width="24" height="24"><use href="#i-spark"/></svg></span>Claude writes it</div>
+      <div><span><svg class="ic" width="24" height="24"><use href="#i-send"/></svg></span>You post it</div>
+    </div>
     <label class="drop" for="pick">
-      <strong>Pick or take photos</strong>
-      <span class="muted small">Front, back, tags, and every flaw. The more Claude sees, the more honest the listing.</span>
+      <svg class="ic" width="40" height="40"><use href="#i-cam"/></svg>
+      <strong>Add photos</strong>
+      <span class="muted small">Front, back, tags, every flaw</span>
     </label>
     <input id="pick" type="file" accept="image/*" multiple hidden>
     <div id="picked" class="thumbs"></div>
-    <label class="f"><span class="fl">Anything the photos don't show</span>
-      <textarea id="add-notes" class="in" placeholder="Works fine. Tag says size M. Missing the charger."></textarea></label>
-    <label class="f" style="max-width:200px"><span class="fl">What you paid</span>
-      <input id="add-cost" class="in" inputmode="decimal" placeholder="0.00"></label>
+    <div class="grid">
+      <label class="f" style="grid-column:1/-1"><span class="fl">Extra details (optional)</span>
+        <textarea id="add-notes" class="in" placeholder="Works fine. Tag says M. No charger."></textarea></label>
+      <label class="f"><span class="fl">You paid</span>
+        <input id="add-cost" class="in" inputmode="decimal" placeholder="$0"></label>
+    </div>
     <div class="row">
-      <button id="add-ai" class="btn pri">Identify it and write the listing</button>
-      <button id="add-plain" class="btn">Add without Claude</button>
+      <button id="add-ai" class="btn pri"><svg class="ic" width="18" height="18"><use href="#i-spark"/></svg>Write my listing</button>
+      <button id="add-plain" class="btn">Skip Claude</button>
       <button id="add-stop" class="btn" hidden>Stop</button>
     </div>
     <div id="add-status" class="note info" hidden></div>
@@ -185,37 +283,44 @@ ul.plain{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
 /* ---------- selling sites. Fees checked Nov 25, 2026. ---------- */
 const FEES_CHECKED = "Nov 25, 2026";
 const SITES = {
-  ebay: { name: "eBay", short: "eBay", open: "https://www.ebay.com/sl/sell",
-    find: q => "https://www.ebay.com/sch/i.html?_nkw=" + q + "&LH_Sold=1&LH_Complete=1", findLabel: "eBay sold prices",
-    fee: p => p * 0.136 + (p > 10 ? 0.40 : 0.30), feeText: "13.6% plus $0.40 an order in most categories ($0.30 on orders of $10 or less)." },
-  fb: { name: "Facebook Marketplace", short: "FB", open: "https://www.facebook.com/marketplace/create/item",
-    find: q => "https://www.facebook.com/marketplace/search/?query=" + q, findLabel: "Facebook asking prices",
-    fee: () => 0, feeHint: "local pickup", feeText: "Free for local pickup. 10% (at least $0.80) if you ship through Facebook." },
-  mercari: { name: "Mercari", short: "Mercari", open: "https://www.mercari.com/sell/",
-    find: q => "https://www.mercari.com/search/?keyword=" + q, findLabel: "Mercari prices",
-    fee: p => p * 0.10, feeText: "10% of the sale." },
-  poshmark: { name: "Poshmark", short: "Posh", open: "https://poshmark.com/create-listing",
-    find: q => "https://poshmark.com/search?query=" + q + "&availability=sold_out", findLabel: "Poshmark sold prices",
-    fee: p => p < 15 ? 2.95 : p * 0.20, feeText: "$2.95 on sales under $15, 20% at $15 and up." },
-  depop: { name: "Depop", short: "Depop", open: "https://www.depop.com/products/create/",
-    find: q => "https://www.depop.com/search/?q=" + q, findLabel: "Depop prices",
-    fee: p => p * 0.033 + 0.45, feeText: "No selling fee in the US. Payment processing is about 3.3% plus $0.45." },
-  craigslist: { name: "Craigslist", short: "CL", open: "https://post.craigslist.org/",
-    fee: () => 0, feeText: "Free for most for-sale posts." },
+  ebay: { name: "eBay", short: "eBay", color: "var(--s1)", open: "https://www.ebay.com/sl/sell",
+    find: q => "https://www.ebay.com/sch/i.html?_nkw=" + q + "&LH_Sold=1&LH_Complete=1", findLabel: "eBay sold",
+    fee: p => p * 0.136 + (p > 10 ? 0.40 : 0.30), feeText: "13.6% + $0.40" },
+  fb: { name: "Facebook Marketplace", short: "Facebook", color: "var(--s2)", open: "https://www.facebook.com/marketplace/create/item",
+    find: q => "https://www.facebook.com/marketplace/search/?query=" + q, findLabel: "Facebook",
+    fee: () => 0, feeShip: p => Math.max(0.80, p * 0.10), feeHint: "local pickup", feeText: "Free local, 10% shipped" },
+  mercari: { name: "Mercari", short: "Mercari", color: "var(--s3)", open: "https://www.mercari.com/sell/",
+    find: q => "https://www.mercari.com/search/?keyword=" + q, findLabel: "Mercari",
+    fee: p => p * 0.10, feeText: "10%" },
+  poshmark: { name: "Poshmark", short: "Poshmark", color: "var(--s4)", open: "https://poshmark.com/create-listing",
+    find: q => "https://poshmark.com/search?query=" + q + "&availability=sold_out", findLabel: "Poshmark sold",
+    fee: p => p < 15 ? 2.95 : p * 0.20, feeText: "20% ($2.95 under $15)" },
+  depop: { name: "Depop", short: "Depop", color: "var(--s5)", open: "https://www.depop.com/products/create/",
+    find: q => "https://www.depop.com/search/?q=" + q, findLabel: "Depop",
+    fee: p => p * 0.033 + 0.45, feeText: "About 3.3% + $0.45" },
+  craigslist: { name: "Craigslist", short: "Craigslist", color: "var(--s6)", open: "https://post.craigslist.org/",
+    fee: () => 0, feeText: "Free" },
 };
 const DEFAULT_ON = { ebay: true, fb: true, mercari: true, poshmark: true, depop: false, craigslist: false };
 const CONDITIONS = ["New with tags", "New without tags", "Like new", "Good", "Fair", "For parts or repair"];
-const STATUS_LABEL = { draft: "Needs info", ready: "Ready to post", listed: "Listed", sold: "Sold" };
+const STATUS_LABEL = { draft: "Needs info", ready: "Ready", listed: "Listed", sold: "Sold" };
 const STALE_DAYS = 30;
 
 /* ---------- state ---------- */
 const S = { db: null, assets: null, sample: null, downloads: null, maxImages: 0,
   items: [], loaded: false, slow: false, dead: "", cfg: { sites: { ...DEFAULT_ON } }, trends: null, trendsLoaded: false,
-  filter: "all", q: "", picked: [] };
+  filter: "all", q: "", picked: [], feePrice: 50 };
 let cur = null, curId = null;
 
 /* ---------- helpers ---------- */
 const $ = (s, r = document) => r.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+function ic(name, size = 18) {
+  const s = document.createElementNS(NS, "svg");
+  s.setAttribute("class", "ic"); s.setAttribute("width", size); s.setAttribute("height", size); s.setAttribute("aria-hidden", "true");
+  const u = document.createElementNS(NS, "use"); u.setAttribute("href", "#i-" + name); s.append(u);
+  return s;
+}
 function h(tag, attrs, ...kids) {
   const el = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs || {})) {
@@ -223,7 +328,7 @@ function h(tag, attrs, ...kids) {
     if (k === "class") el.className = v;
     else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
     else if (k === "value") el.value = v;
-    else if (k === "checked" || k === "disabled" || k === "hidden" || k === "selected") el[k] = !!v;
+    else if (k === "checked" || k === "disabled" || k === "hidden" || k === "selected" || k === "open") el[k] = !!v;
     else el.setAttribute(k, v === true ? "" : v);
   }
   for (const kid of kids.flat(Infinity)) {
@@ -233,7 +338,7 @@ function h(tag, attrs, ...kids) {
   return el;
 }
 const num = v => { const n = parseFloat(String(v ?? "").replace(/[^0-9.]/g, "")); return Number.isFinite(n) ? n : null; };
-const money = n => n == null ? "" : "$" + (Math.round(n * 100) % 100 === 0 ? Math.round(n).toLocaleString("en-US") : n.toFixed(2));
+const money = n => n == null ? "" : (n < 0 ? "-$" : "$") + (Math.round(Math.abs(n) * 100) % 100 === 0 ? Math.round(Math.abs(n)).toLocaleString("en-US") : Math.abs(n).toFixed(2));
 const nowISO = () => new Date().toISOString();
 const day = iso => { const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleDateString("en-US", { month: "short", day: "numeric" }); };
 const daysSince = iso => { const d = new Date(iso); return isNaN(d) ? 0 : Math.max(0, Math.floor((Date.now() - d) / 864e5)); };
@@ -242,6 +347,9 @@ const str = v => (typeof v === "string" ? v : v == null ? "" : String(v)).trim()
 const strs = v => Array.isArray(v) ? v.map(str).filter(Boolean) : [];
 const httpsOnly = u => /^https:\/\//i.test(str(u)) ? str(u) : "";
 const enabledSites = () => Object.keys(SITES).filter(k => S.cfg.sites[k]);
+const siteName = k => SITES[k] ? SITES[k].name : "elsewhere";
+const dot = k => h("i", { class: "dot", style: "background:" + (SITES[k] ? SITES[k].color : "var(--muted)") });
+const note = (kind, icon, ...kids) => h("div", { class: "note " + kind }, ic(icon, 18), h("div", { class: "grow" }, ...kids));
 
 function statusOf(it) {
   if (it.sold) return "sold";
@@ -254,6 +362,7 @@ function listedSince(it) {
   return ds[0] || "";
 }
 const isStale = it => statusOf(it) === "listed" && daysSince(listedSince(it)) >= STALE_DAYS;
+const postedOn = it => Object.keys(SITES).filter(k => it.posts && it.posts[k] && it.posts[k].on);
 
 let toastTimer;
 function toast(msg) {
@@ -270,12 +379,13 @@ function copy(text, okMsg) {
   };
   try { navigator.clipboard.writeText(text).then(() => toast(okMsg), fallback); } catch { fallback(); }
 }
-function confirmBtn(label, sure, fn, cls = "btn sm") {
+function confirmBtn(label, sure, fn, cls = "btn sm", icon) {
   let armed = false, timer;
-  const b = h("button", { class: cls, type: "button" }, label);
+  const txt = h("span", null, label);
+  const b = h("button", { class: cls, type: "button" }, icon && ic(icon, 16), txt);
   b.addEventListener("click", () => {
-    if (!armed) { armed = true; b.textContent = sure; timer = setTimeout(() => { armed = false; b.textContent = label; }, 4000); return; }
-    clearTimeout(timer); armed = false; b.textContent = label; fn();
+    if (!armed) { armed = true; txt.textContent = sure; timer = setTimeout(() => { armed = false; txt.textContent = label; }, 4000); return; }
+    clearTimeout(timer); armed = false; txt.textContent = label; fn();
   });
   return b;
 }
@@ -327,7 +437,7 @@ Reply with only one JSON object with exactly these keys:
  "search": "the 3 to 6 words a buyer would type to find this exact item",
  "priceLow": 0,
  "priceHigh": 0,
- "priceNote": "one sentence on what drives the price for this item. Say plainly if you are unsure.",
+ "priceNote": "one short sentence on what drives the price for this item. Say plainly if you are unsure.",
  "bestSites": ["up to 3 of: ${Object.keys(SITES).join(", ")} where this kind of item sells best"],
  "confidence": "high | medium | low: how sure you are about what the item is"
 }
@@ -382,20 +492,33 @@ function route() {
 addEventListener("hashchange", route);
 
 /* ---------- shelf ---------- */
-function renderShelf() {
+function renderDash() {
+  const dash = $("#dash"); dash.replaceChildren();
   const real = S.items.filter(i => !i.example);
-  const open = real.filter(i => !i.sold), sold = real.filter(i => i.sold);
+  const base = real.length ? real : S.items;
+  if (!base.length) return;
+  const open = base.filter(i => !i.sold), sold = base.filter(i => i.sold);
   const asking = open.reduce((s, i) => s + (i.price || 0), 0);
   const soldSum = sold.reduce((s, i) => s + (i.sold.price || 0), 0);
   const profit = sold.reduce((s, i) => s + ((i.sold.price || 0) - (i.sold.fee || 0) - (i.sold.ship || 0) - (i.cost || 0)), 0);
-  const sum = $("#sum"); sum.replaceChildren();
-  if (real.length) {
-    sum.append(h("span", null, h("b", null, open.length), " to sell"),
-      h("span", null, h("b", null, money(asking) || "$0"), " asking total"),
-      h("span", null, h("b", null, real.filter(i => statusOf(i) === "listed").length), " listed"));
-    if (sold.length) sum.append(h("span", null, h("b", null, money(soldSum)), " sold, about ", h("b", null, money(profit)), " profit"));
-  }
-
+  const n = { todo: 0, listed: 0, sold: sold.length };
+  for (const i of open) (statusOf(i) === "listed" ? n.listed++ : n.todo++);
+  const kpi = (icon, label, big, sub) => h("div", { class: "kpi" }, h("span", { class: "fl" }, ic(icon, 14), label), h("b", null, big), h("small", null, sub));
+  dash.append(h("div", { class: "kpis" },
+    kpi("tag", "For sale", money(asking) || "$0", open.length + (open.length === 1 ? " item" : " items")),
+    kpi("check", "Sold", money(soldSum) || "$0", sold.length + (sold.length === 1 ? " item" : " items")),
+    kpi("cash", "Profit", money(profit) || "$0", "after fees")));
+  const parts = [["To post", n.todo, "var(--s2)"], ["Listed", n.listed, "var(--s1)"], ["Sold", n.sold, "var(--s3)"]];
+  const total = n.todo + n.listed + n.sold;
+  const pipe = h("div", { class: "pipe", role: "img", "aria-label": parts.map(p => p[1] + " " + p[0].toLowerCase()).join(", ") });
+  for (const [label, count, color] of parts) if (count) pipe.append(h("i", { style: "flex:" + count + ";background:" + color, title: label + ": " + count }));
+  if (!total) pipe.append(h("i", { class: "none" }));
+  dash.append(h("div", null, pipe, h("div", { class: "legend" },
+    parts.map(([label, count, color]) => h("span", null, h("i", { class: "dot", style: "background:" + color }), label, h("b", null, count))),
+    !real.length && h("span", { class: "pill" }, "example numbers"))));
+}
+function renderShelf() {
+  renderDash();
   const counts = { all: S.items.length, todo: 0, listed: 0, stale: 0, sold: 0 };
   for (const i of S.items) {
     const st = statusOf(i);
@@ -406,15 +529,14 @@ function renderShelf() {
   }
   const chips = $("#chips"); chips.replaceChildren();
   for (const [k, label] of [["all", "All"], ["todo", "To post"], ["listed", "Listed"], ["stale", STALE_DAYS + "+ days"], ["sold", "Sold"]]) {
-    chips.append(h("button", { class: "chip", "aria-pressed": String(S.filter === k), onclick: () => { S.filter = k; renderShelf(); } }, label + " " + counts[k]));
+    chips.append(h("button", { class: "chip", "aria-pressed": String(S.filter === k), onclick: () => { S.filter = k; renderShelf(); } }, label, h("b", null, counts[k])));
   }
-
-  const note = $("#shelfnote");
-  note.hidden = !(S.dead || (S.slow && !S.loaded));
-  note.textContent = S.dead || "Can't reach your inventory yet. It shows up as soon as the connection is back.";
+  const sn = $("#shelfnote");
+  sn.hidden = !(S.dead || (S.slow && !S.loaded));
+  sn.textContent = S.dead || "Can't reach your inventory yet. It shows up when the connection is back.";
 
   const q = S.q.toLowerCase();
-  let rows = S.items.filter(i => {
+  const rows = S.items.filter(i => {
     const st = statusOf(i);
     if (S.filter === "todo" && !(st === "draft" || st === "ready")) return false;
     if (S.filter === "listed" && st !== "listed") return false;
@@ -426,37 +548,38 @@ function renderShelf() {
   rows.sort((a, b) => (!!a.sold - !!b.sold) || str(b.updatedAt).localeCompare(str(a.updatedAt)));
 
   const list = $("#list"); list.replaceChildren();
-  $("#csv").hidden = !(S.downloads && real.length);
+  const csv = $("#csv");
+  csv.hidden = !(S.downloads && S.items.some(i => !i.example));
+  csv.replaceChildren(ic("save", 16), "Spreadsheet");
   if (!S.items.length) {
     list.append(h("div", { class: "empty" },
+      h("span", { class: "sico", style: "width:64px;height:64px;border-radius:20px" }, ic("cam", 32)),
       h("h2", null, S.loaded ? "Nothing on the shelf yet" : "Opening the stockroom…"),
-      S.loaded && h("p", null, "Take a few photos of something you want to sell. Claude names it, writes the listing and flags the wear. You set the price and post it."),
-      S.loaded && h("a", { class: "btn pri", href: "#add" }, "Add your first item")));
+      S.loaded && h("p", null, "Snap a few photos. Claude writes the listing."),
+      S.loaded && h("a", { class: "btn pri", href: "#add" }, ic("cam", 18), "Add your first item")));
     return;
   }
-  if (!rows.length) { list.append(h("div", { class: "empty" }, h("p", null, "Nothing matches that."))); return; }
-  for (const it of rows) list.append(itemRow(it));
+  if (!rows.length) { list.append(h("div", { class: "empty" }, h("p", null, "Nothing matches."))); return; }
+  for (const it of rows) list.append(itemCard(it));
 }
-function itemRow(it) {
+function itemCard(it) {
   const st = statusOf(it);
-  const posted = Object.keys(SITES).filter(k => it.posts && it.posts[k] && it.posts[k].on).map(k => SITES[k].short);
-  const sub = [];
-  if (it.example) sub.push("Example, delete it any time");
-  if (st === "sold") sub.push("Sold " + day(it.sold.at) + (it.sold.site ? " on " + (SITES[it.sold.site] ? SITES[it.sold.site].name : it.sold.site) : ""));
-  else if (st === "listed") sub.push(posted.join(", ") + " · " + daysSince(listedSince(it)) + "d");
-  else if (it.condition) sub.push(it.condition);
-  if (it.spot) sub.push(it.spot);
   const photo = (it.photos || [])[0];
   const price = st === "sold" ? it.sold.price : it.price;
-  return h("button", { class: "item", type: "button", onclick: () => openItem(it.id) },
-    photo ? h("img", { class: "thumb", src: "/_blob/" + encodeURIComponent(photo), alt: "", loading: "lazy" }) : h("span", { class: "thumb none" }, "no photo"),
-    h("span", { class: "grow" },
-      h("span", { class: "ititle" }, it.title || "Untitled item"), h("br"),
-      h("span", { class: "isub" }, sub.join(" · ")), sub.length ? " " : null,
-      h("span", { class: "pill " + st }, STATUS_LABEL[st]),
-      isStale(it) && h("span", { class: "pill stale", style: "margin-left:4px" }, "sitting " + daysSince(listedSince(it)) + "d"),
-      it.market && it.market.signal && h("span", { class: "pill", style: "margin-left:4px" }, { up: "demand up", down: "cooling", steady: "steady" }[it.market.signal] || "")),
-    price ? h("span", { class: "sticker" }, money(price)) : h("span", { class: "sticker blank" }, "no price"));
+  const sub = h("div", { class: "sub" });
+  if (it.example) sub.append(h("span", { class: "pill" }, "example"));
+  if (st === "sold") sub.append(dot(it.sold.site), day(it.sold.at));
+  else if (st === "listed") { for (const k of postedOn(it)) sub.append(dot(k)); sub.append(daysSince(listedSince(it)) + "d up"); }
+  else if (it.condition) sub.append(it.condition);
+  if (isStale(it)) sub.append(h("span", { class: "pill stale" }, ic("clock", 12), "sitting"));
+  if (it.market && it.market.signal === "up") sub.append(h("span", { class: "pill good" }, ic("up", 12), "hot"));
+  if (it.market && it.market.signal === "down") sub.append(h("span", { class: "pill stale" }, ic("down", 12), "cooling"));
+  return h("button", { class: "card", type: "button", onclick: () => openItem(it.id) },
+    h("div", { class: "pic" },
+      photo ? h("img", { src: "/_blob/" + encodeURIComponent(photo), alt: "", loading: "lazy" }) : ic("tag", 44),
+      h("span", { class: "pill " + st }, st === "sold" && ic("check", 12), STATUS_LABEL[st]),
+      price ? h("span", { class: "sticker" }, money(price)) : null),
+    h("div", { class: "meta" }, h("span", { class: "ititle" }, it.title || "Untitled item"), sub));
 }
 $("#q").addEventListener("input", e => { S.q = e.target.value; renderShelf(); });
 $("#csv").addEventListener("click", async () => {
@@ -464,9 +587,8 @@ $("#csv").addEventListener("click", async () => {
   const cell = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
   const lines = [cols.map(cell).join(",")];
   for (const i of S.items.filter(i => !i.example)) {
-    const posted = Object.keys(SITES).filter(k => i.posts && i.posts[k] && i.posts[k].on).map(k => SITES[k].name).join("; ");
-    lines.push([i.title, i.brand, i.category, i.condition, STATUS_LABEL[statusOf(i)], i.cost, i.price, i.floor, posted, listedSince(i).slice(0, 10),
-      i.sold ? i.sold.price : "", i.sold ? (SITES[i.sold.site] ? SITES[i.sold.site].name : i.sold.site) : "", i.sold ? str(i.sold.at).slice(0, 10) : "", i.spot, i.notes].map(cell).join(","));
+    lines.push([i.title, i.brand, i.category, i.condition, STATUS_LABEL[statusOf(i)], i.cost, i.price, i.floor, postedOn(i).map(siteName).join("; "), listedSince(i).slice(0, 10),
+      i.sold ? i.sold.price : "", i.sold ? siteName(i.sold.site) : "", i.sold ? str(i.sold.at).slice(0, 10) : "", i.spot, i.notes].map(cell).join(","));
   }
   try { await S.downloads.save({ filename: "resale-inventory.csv", data: lines.join("\r\n") }); toast("Saved"); }
   catch (e) { if (!e || e.code !== "declined") toast("Couldn't save the file here."); }
@@ -487,8 +609,8 @@ let addCtl = null, adding = false;
 function addStatus(msg) { const el = $("#add-status"); el.hidden = !msg; el.textContent = msg || ""; }
 async function addItem(useAI) {
   if (adding) return;
-  if (!S.db) { addStatus("Your inventory isn't connected yet, so this can't be saved. Open this page inside Claude."); return; }
-  if (useAI && !S.picked.length) { addStatus("Add at least one photo so Claude has something to look at."); return; }
+  if (!S.db) { addStatus("Your inventory isn't connected, so this can't be saved. Open this page inside Claude."); return; }
+  if (useAI && !S.picked.length) { addStatus("Add a photo first so Claude has something to look at."); return; }
   adding = true; $("#add-ai").disabled = $("#add-plain").disabled = true;
   const notes = $("#add-notes").value.trim(), cost = num($("#add-cost").value);
   try {
@@ -503,11 +625,11 @@ async function addItem(useAI) {
     const ids = []; let failed = 0;
     if (S.assets) {
       for (let i = 0; i < blobs.length; i++) {
-        addStatus("Saving photo " + (i + 1) + " of " + blobs.length + (useAI ? ". Claude is looking at them too…" : "…"));
+        addStatus("Saving photo " + (i + 1) + " of " + blobs.length + "…");
         try { ids.push((await S.assets.upload(blobs[i])).id); } catch { failed++; }
       }
     } else failed = blobs.length;
-    if (useAI) addStatus("Claude is looking at the photos. This takes up to a minute…");
+    if (useAI) addStatus("Claude is looking at the photos. Up to a minute…");
     await aiP;
     const t = nowISO();
     const item = { title: "", brand: "", model: "", category: "", size: "", color: "", condition: "", flaws: [], unsure: [], description: "",
@@ -536,7 +658,7 @@ $("#add-plain").addEventListener("click", () => addItem(false));
 $("#add-stop").addEventListener("click", () => { if (addCtl) addCtl.abort(); });
 
 /* ---------- item sheet ---------- */
-let pending = {}, saveTimer, saveEl;
+let pending = {}, saveTimer, saveEl, meta = null;
 function saveState(t) { if (saveEl) saveEl.textContent = t; }
 function deepMerge(into, from) {
   for (const k of Object.keys(from)) {
@@ -549,6 +671,7 @@ function deepMerge(into, from) {
 function queueSave(patch) {
   deepMerge(pending, patch); saveState("Saving…");
   clearTimeout(saveTimer); saveTimer = setTimeout(flush, 700);
+  if (meta) meta();
 }
 let flushP = Promise.resolve();
 function flush() { flushP = flushP.then(doFlush); return flushP; }
@@ -576,39 +699,43 @@ async function closeItem() {
   await flush();
   $("#sheet").hidden = true; $("#sheet").replaceChildren();
   document.documentElement.style.overflow = "";
-  cur = null; curId = null; renderShelf();
+  cur = null; curId = null; meta = null; renderShelf();
 }
 function fld(label, key, o = {}) {
   const el = h(o.area ? "textarea" : "input", { class: "in", id: "it-" + key, inputmode: o.money ? "decimal" : null, placeholder: o.ph || null, maxlength: o.max || null, rows: o.rows || null });
-  el.value = o.get ? o.get() : (cur[key] ?? "");
-  const hint = h("span", { class: "fh" }, o.hint || "");
-  const upd = () => { if (o.count) hint.textContent = el.value.length + " of " + o.max + " characters"; };
-  el.addEventListener("input", () => { const v = o.money ? num(el.value) : o.set ? o.set(el.value) : el.value; set(key, v); upd(); if (o.after) o.after(); });
+  el.value = cur[key] ?? "";
+  const hint = h("span", { class: "fh" });
+  const upd = () => { if (o.count) hint.textContent = el.value.length + "/" + o.max; };
+  el.addEventListener("input", () => { set(key, o.money ? num(el.value) : el.value); upd(); if (o.after) o.after(); });
   upd();
-  return h("label", { class: "f" + (o.cls ? " " + o.cls : "") }, h("span", { class: "fl" }, label), el, (o.hint || o.count) && hint);
+  return h("label", { class: "f" + (o.cls ? " " + o.cls : "") }, h("span", { class: "fl" }, label), el, o.count && hint);
+}
+function section(icon, title, open, ...inner) {
+  const sum = h("span", { class: "ssum" });
+  const el = h("details", { class: "sec", open },
+    h("summary", null, h("span", { class: "sico" }, ic(icon, 18)), h("h3", null, title), sum, h("span", { class: "chev" }, ic("chev", 16))),
+    h("div", { class: "inner" }, ...inner));
+  return { el, sum };
 }
 function renderSheet() {
   const sh = $("#sheet"); sh.replaceChildren();
   saveEl = h("span", { class: "small muted", role: "status" }, "Saved");
   sh.append(h("div", { class: "shead" }, h("div", { class: "wrap" },
-    h("button", { class: "btn sm", type: "button", onclick: closeItem }, "‹ Shelf"),
+    h("button", { class: "btn sm", type: "button", onclick: closeItem }, ic("back", 16), "Shelf"),
     h("span", { class: "grow" }), saveEl)));
   const body = h("div", { class: "wrap sbody stack" });
   sh.append(body);
 
-  if (cur.example) body.append(h("div", { class: "note info" }, "This is an example so you can see how an item looks. Delete it at the bottom whenever you like."));
-
-  /* photos */
-  const photos = h("div", { class: "thumbs", id: "it-photos" });
+  /* hero: photos, title, progress */
+  const strip = h("div", { class: "strip", id: "it-photos" });
   const drawPhotos = () => {
-    photos.replaceChildren();
-    cur.photos.forEach((pid, i) => photos.append(h("div", { class: "ph" },
+    strip.replaceChildren();
+    cur.photos.forEach((pid, i) => strip.append(h("div", { class: "ph" },
       h("img", { src: "/_blob/" + encodeURIComponent(pid), alt: "Photo " + (i + 1), loading: "lazy" }),
       S.assets && confirmBtn("Remove", "Sure?", async () => {
         cur.photos = cur.photos.filter(x => x !== pid); queueSave({ photos: cur.photos }); drawPhotos();
         try { await S.assets.delete(pid); } catch { /* the file stays stored, the item no longer points at it */ }
       }))));
-    if (!cur.photos.length) photos.append(h("p", { class: "muted small" }, "No photos yet."));
   };
   drawPhotos();
   const more = h("input", { type: "file", id: "it-more", accept: "image/*", multiple: true, hidden: true });
@@ -621,75 +748,105 @@ function renderSheet() {
     }
   });
   const photoBtns = h("div", { class: "row" });
-  if (S.assets) photoBtns.append(h("label", { class: "btn sm", for: "it-more" }, "Add photos"), more);
-  if (S.downloads && cur.photos.length) photoBtns.append(h("button", { class: "btn sm", type: "button", onclick: savePhotos }, "Save photos to this device"));
-  if (S.sample && S.maxImages && cur.photos.length) photoBtns.append(confirmBtn("Have Claude redo the listing", "Replace what's written?", reIdentify));
-  body.append(h("div", { class: "sec" }, h("h3", null, "Photos"), photos, photoBtns,
-    h("p", { class: "fh" }, "The selling sites need the photos from your phone's photo library. If you took them inside this page, save them to the device first.")));
+  if (S.assets) photoBtns.append(h("label", { class: "btn sm", for: "it-more" }, ic("cam", 16), "Add photos"), more);
+  if (S.downloads && cur.photos.length) photoBtns.append(h("button", { class: "btn sm", type: "button", onclick: savePhotos }, ic("save", 16), "Save to phone"));
+  if (S.sample && S.maxImages && cur.photos.length) photoBtns.append(confirmBtn("Rewrite", "Replace the listing?", reIdentify, "btn sm", "spark"));
+  const heroTitle = h("h2", null);
+  const stepEls = {};
+  const steps = h("div", { class: "steps" }, [["photos", "Photos"], ["listing", "Listing"], ["price", "Price"], ["post", "Posted"], ["sold", "Sold"]].map(([k, label]) => (stepEls[k] = h("div", { class: "step" }, h("i"), label))));
+  body.append(strip, photoBtns, heroTitle, steps);
+  if (cur.example) body.append(note("info", "spark", "Example item. Delete it under More."));
+  if (cur.confidence === "low") body.append(note("", "warn", "Claude wasn't sure what this is. Double-check it."));
+  if ((cur.unsure || []).length) body.append(note("", "warn", h("strong", null, "Check before you post"), h("div", { class: "chips wrapc", style: "margin-top:6px" }, cur.unsure.map(u => h("span", { class: "pill" }, u)))));
 
-  /* what it is */
-  const unsure = (cur.unsure || []).length ? h("div", { class: "note" }, h("strong", null, "Check before you post"), h("ul", { class: "plain" }, cur.unsure.map(u => h("li", null, u)))) : null;
-  body.append(h("div", { class: "sec" }, h("h3", null, "The listing"),
-    cur.confidence === "low" && h("div", { class: "note" }, "Claude wasn't sure what this is. Read it over before you trust it."),
-    unsure,
-    fld("Title", "title", { max: 80, count: true, after: drawPosts }),
-    h("div", { class: "grid" },
-      fld("Brand", "brand"), fld("Model or style", "model"), fld("Category", "category"), fld("Size", "size"), fld("Color", "color"),
-      (() => {
-        const sel = h("select", { class: "in", id: "it-condition" }, h("option", { value: "" }, "Pick one"), CONDITIONS.map(c => h("option", { value: c, selected: cur.condition === c }, c)));
-        sel.addEventListener("change", () => set("condition", sel.value));
-        return h("label", { class: "f" }, h("span", { class: "fl" }, "Condition"), sel);
-      })()),
-    fld("Wear and flaws, one per line", "flaws", { area: true, rows: 3, get: () => cur.flaws.join("\n"), set: v => v.split("\n").map(s => s.trim()).filter(Boolean), ph: "Scuff on left toe\nSmall stain near hem", hint: "These go into every listing word for word. Honest listings get fewer returns." }),
-    fld("Description", "description", { area: true, rows: 5 }),
-    fld("Search words for price checks", "search", { ph: "patagonia better sweater mens medium" })));
+  const done = () => ({ photos: cur.photos.length > 0, listing: !!(cur.title && cur.condition), price: !!cur.price, post: postedOn(cur).length > 0, sold: !!cur.sold });
+  const d0 = done();
+  const first = cur.sold ? "sold" : !d0.listing ? "listing" : !d0.price ? "price" : "post";
 
-  /* money */
-  const est = cur.est && cur.est.low ? h("div", { class: "note info" },
-    h("strong", null, "Claude's guess: " + money(cur.est.low) + " to " + money(cur.est.high)), ". ", cur.est.note || "",
-    " This is from memory, not live sales. Check sold prices before you settle on a number.") : null;
+  /* listing */
+  const condBox = h("div", { class: "chips wrapc", id: "it-condition", role: "group", "aria-label": "Condition" });
+  const drawCond = () => condBox.replaceChildren(...CONDITIONS.map(c => h("button", { class: "chip", type: "button", "aria-pressed": String(cur.condition === c), onclick: () => { set("condition", cur.condition === c ? "" : c); drawCond(); } }, c)));
+  drawCond();
+  const flawBox = h("div", { class: "chips wrapc", id: "it-flaws" });
+  const drawFlaws = () => {
+    flawBox.replaceChildren(...cur.flaws.map((f, i) => h("span", { class: "fchip" }, f,
+      h("button", { type: "button", "aria-label": "Remove " + f, onclick: () => { set("flaws", cur.flaws.filter((_, j) => j !== i)); drawFlaws(); } }, "×"))));
+    if (!cur.flaws.length) flawBox.append(h("span", { class: "muted small" }, "None listed"));
+  };
+  drawFlaws();
+  const flawIn = h("input", { class: "in", id: "it-flaw-new", placeholder: "Add a flaw, e.g. scuff on left toe" });
+  const addFlaw = () => { const v = flawIn.value.trim(); if (!v) return; set("flaws", [...cur.flaws, v]); flawIn.value = ""; drawFlaws(); };
+  flawIn.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addFlaw(); } });
+  const listing = section("pen", "Listing", first === "listing",
+    fld("Title", "title", { max: 80, count: true }),
+    h("div", { class: "f" }, h("span", { class: "fl" }, "Condition"), condBox),
+    h("div", { class: "f" }, h("span", { class: "fl" }, "Wear and flaws"), flawBox, h("div", { class: "row" }, h("div", { class: "grow" }, flawIn), h("button", { class: "btn sm", type: "button", onclick: addFlaw }, "Add"))),
+    fld("Description", "description", { area: true, rows: 4 }),
+    h("div", { class: "grid" }, fld("Brand", "brand"), fld("Model", "model"), fld("Category", "category"), fld("Size", "size"), fld("Color", "color")));
+
+  /* price */
+  const gauge = h("div", { class: "gauge", id: "it-gauge", role: "img" });
+  const gLegend = h("div", { class: "legend" });
+  const drawGauge = () => {
+    const est = cur.est && cur.est.low ? cur.est : null;
+    const vals = [];
+    if (est) vals.push(est.low, est.high);
+    if (cur.price) vals.push(cur.price);
+    if (cur.floor) vals.push(cur.floor);
+    for (const c of cur.comps) vals.push(c.low, c.high);
+    gauge.replaceChildren(); gLegend.replaceChildren();
+    gauge.hidden = gLegend.hidden = !vals.length;
+    if (!vals.length) return;
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    if (lo === hi) { lo *= 0.8; hi *= 1.2; }
+    const pad = (hi - lo) * 0.15; lo = Math.max(0, lo - pad); hi += pad;
+    const x = v => Math.min(100, Math.max(0, (v - lo) / (hi - lo) * 100));
+    const lab = v => Math.min(88, Math.max(12, x(v))) + "%";
+    gauge.append(h("div", { class: "g-track" }));
+    if (est) gauge.append(h("div", { class: "g-band", style: "left:" + x(est.low) + "%;width:" + Math.max(1, x(est.high) - x(est.low)) + "%" }));
+    for (const c of cur.comps.slice(-12)) gauge.append(h("div", { class: "g-comp", style: "left:" + x((c.low + c.high) / 2) + "%", title: money(c.low) + (c.high !== c.low ? " to " + money(c.high) : "") + (c.note ? ", " + c.note : "") }));
+    if (cur.floor) gauge.append(h("div", { class: "g-floor", style: "left:" + lab(cur.floor) }, h("span", null, "low " + money(cur.floor))));
+    if (cur.price) gauge.append(h("div", { class: "g-ask", style: "left:" + lab(cur.price) }, h("span", null, money(cur.price))));
+    gauge.setAttribute("aria-label", [cur.price && "Asking " + money(cur.price), cur.floor && "lowest " + money(cur.floor), est && "Claude's guess " + money(est.low) + " to " + money(est.high)].filter(Boolean).join(", "));
+    if (est) gLegend.append(h("span", null, h("i", { class: "dot", style: "background:var(--act);border-radius:3px;width:16px;height:8px" }), "Claude's guess", h("b", null, money(est.low) + "–" + money(est.high))));
+    if (cur.comps.length) gLegend.append(h("span", null, h("i", { class: "dot", style: "background:var(--s1)" }), "What you found", h("b", null, cur.comps.length)));
+  };
+  drawGauge();
   const links = h("div", { class: "row" });
   for (const k of Object.keys(SITES)) if (SITES[k].find && (k === "ebay" || S.cfg.sites[k]))
-    links.append(h("a", { class: "btn sm", target: "_blank", rel: "noopener", href: SITES[k].find(searchWords(cur)), onclick: e => { e.currentTarget.href = SITES[k].find(searchWords(cur)); } }, SITES[k].findLabel + " ↗"));
-  const logBox = h("div", { class: "log" });
-  const drawLog = () => {
-    logBox.replaceChildren();
-    for (const c of [...cur.comps].reverse().slice(0, 8))
-      logBox.append(h("div", null, h("span", { class: "mono" }, day(c.at) + "  " + money(c.low) + (c.high && c.high !== c.low ? "–" + money(c.high) : "")), c.note ? "  " + c.note : ""));
-  };
-  drawLog();
-  const cLow = h("input", { class: "in", id: "comp-low", inputmode: "decimal", placeholder: "Low" });
-  const cHigh = h("input", { class: "in", id: "comp-high", inputmode: "decimal", placeholder: "High" });
-  const cNote = h("input", { class: "in", id: "comp-note", placeholder: "Where you saw it" });
-  const market = cur.market && cur.market.note ? h("div", { class: "note good" }, h("strong", null, "Market check, " + day(cur.market.at) + ": "), cur.market.note) : null;
-  body.append(h("div", { class: "sec" }, h("h3", null, "Price"),
+    links.append(h("a", { class: "btn sm", target: "_blank", rel: "noopener", href: SITES[k].find(searchWords(cur)), onclick: e => { e.currentTarget.href = SITES[k].find(searchWords(cur)); } }, dot(k), SITES[k].findLabel, ic("out", 14)));
+  const cLow = h("input", { class: "in", id: "comp-low", inputmode: "decimal", placeholder: "Low $" });
+  const cHigh = h("input", { class: "in", id: "comp-high", inputmode: "decimal", placeholder: "High $" });
+  const price = section("cash", "Price", first === "price",
     h("div", { class: "grid" },
-      fld("Asking", "price", { money: true, ph: "0.00", after: drawPosts }),
-      fld("Lowest you'll take", "floor", { money: true, ph: "0.00" }),
-      fld("What you paid", "cost", { money: true, ph: "0.00" })),
-    est, market, links,
-    h("div", { class: "f" }, h("span", { class: "fl" }, "Log what you found"),
-      h("div", { class: "grid", style: "grid-template-columns:repeat(auto-fit,minmax(90px,1fr))" }, cLow, cHigh, cNote,
+      fld("Asking", "price", { money: true, ph: "$0", after: () => { drawGauge(); drawPosts(); } }),
+      fld("Lowest", "floor", { money: true, ph: "$0", after: drawGauge }),
+      fld("You paid", "cost", { money: true, ph: "$0" })),
+    gauge, gLegend,
+    cur.est && cur.est.note && h("p", { class: "fh" }, cur.est.note + " A guess from memory, so check sold prices."),
+    cur.market && cur.market.note && note("good", "trend", h("strong", null, "Checked " + day(cur.market.at) + ". "), cur.market.note),
+    h("div", { class: "f" }, h("span", { class: "fl" }, "Check real prices"), links),
+    h("div", { class: "f" }, h("span", { class: "fl" }, "Saw a price? Log it"),
+      h("div", { class: "row" }, h("div", { class: "grow" }, cLow), h("div", { class: "grow" }, cHigh),
         h("button", { class: "btn sm", type: "button", onclick: () => {
           const lo = num(cLow.value), hi = num(cHigh.value) ?? lo;
-          if (lo == null) { toast("Put in at least the low price."); return; }
-          cur.comps = [...cur.comps, { at: nowISO(), low: Math.min(lo, hi), high: Math.max(lo, hi), note: cNote.value.trim() }].slice(-40);
-          queueSave({ comps: cur.comps }); cLow.value = cHigh.value = cNote.value = ""; drawLog();
-        } }, "Log it"))),
-    logBox));
+          if (lo == null) { toast("Put in a price."); return; }
+          cur.comps = [...cur.comps, { at: nowISO(), low: Math.min(lo, hi), high: Math.max(lo, hi), note: "" }].slice(-40);
+          queueSave({ comps: cur.comps }); cLow.value = cHigh.value = ""; drawGauge();
+        } }, "Log"))),
+    fld("Search words", "search", { ph: "patagonia better sweater mens medium" }));
 
   /* post */
-  const posts = h("div", { class: "stack", id: "it-posts" });
+  const posts = h("div", { id: "it-posts" });
   function drawPosts() {
     posts.replaceChildren();
     const keys = enabledSites();
     if (!keys.length) { posts.append(h("p", { class: "muted" }, "No sites turned on. Pick them under Sites.")); return; }
     for (const k of keys) {
       const site = SITES[k], p = cur.posts[k] || {};
-      const fee = cur.price ? site.fee(cur.price) : null;
-      const keep = cur.price ? h("span", { class: "small muted" }, "You keep about ", h("b", { class: "mono" }, money(Math.max(0, cur.price - fee))), " of " + money(cur.price) + (site.feeHint ? " (" + site.feeHint + ")" : "")) : null;
-      const best = (cur.bestSites || []).includes(k) ? h("span", { class: "pill sold" }, "good fit") : null;
-      const url = h("input", { class: "in", id: "post-url-" + k, type: "url", placeholder: "Paste the link to your listing" }); url.value = p.url || "";
+      const fee = cur.price ? site.fee(cur.price) : 0;
+      const keep = cur.price ? Math.max(0, cur.price - fee) : 0;
+      const url = h("input", { class: "in", id: "post-url-" + k, type: "url", placeholder: "Paste your listing link" }); url.value = p.url || "";
       url.addEventListener("input", () => { cur.posts[k] = { ...(cur.posts[k] || {}), url: url.value.trim() }; queueSave({ posts: { [k]: { url: url.value.trim() } } }); });
       const on = h("input", { type: "checkbox", id: "post-on-" + k, checked: !!p.on });
       on.addEventListener("change", () => {
@@ -699,41 +856,42 @@ function renderSheet() {
       });
       const view = httpsOnly(p.url);
       posts.append(h("div", { class: "site" },
-        h("div", { class: "row" }, h("h3", null, site.name), best), keep,
+        h("div", { class: "row" }, dot(k), h("h3", null, site.name), (cur.bestSites || []).includes(k) && h("span", { class: "pill good" }, ic("check", 12), "good fit"),
+          h("span", { class: "grow" }), cur.price && h("span", { class: "small" }, "keep ", h("b", { class: "mono" }, money(keep)), site.feeHint ? " " + site.feeHint : "")),
+        cur.price && h("div", { class: "bar", title: "Fee " + money(fee) }, h("i", { style: "width:" + (keep / cur.price * 100) + "%" })),
         h("div", { class: "row" },
-          h("a", { class: "btn sm pri", href: site.open, target: "_blank", rel: "noopener", onclick: () => { if (cur.title) copy(cur.title, "Title copied. Paste it on " + site.name + "."); } }, "Open " + site.name + " ↗"),
-          h("button", { class: "btn sm", type: "button", onclick: () => copy(listingText(cur, k), "Listing text copied") }, "Copy listing text"),
-          h("button", { class: "btn sm", type: "button", onclick: () => copy(cur.title || "", "Title copied") }, "Copy title")),
-        h("label", { class: "check", for: "post-on-" + k }, on, p.on ? "Posted " + day(p.at) + " · " + daysSince(p.at) + " days up" : "I posted it here"),
-        p.on && h("div", { class: "row" }, h("div", { class: "grow" }, url), view && h("a", { class: "btn sm", href: view, target: "_blank", rel: "noopener" }, "View ↗"))));
+          h("a", { class: "btn sm pri", href: site.open, target: "_blank", rel: "noopener", onclick: () => { if (cur.title) copy(cur.title, "Title copied. Paste it on " + site.short + "."); } }, ic("out", 16), "Open"),
+          h("button", { class: "btn sm", type: "button", onclick: () => copy(listingText(cur, k), "Listing text copied") }, ic("copy", 16), "Copy text"),
+          h("label", { class: "check", for: "post-on-" + k, style: "margin-left:auto" }, on, p.on ? "Posted " + day(p.at) : "Posted")),
+        p.on && h("div", { class: "row" }, h("div", { class: "grow" }, url), view && h("a", { class: "btn sm", href: view, target: "_blank", rel: "noopener" }, "View", ic("out", 14)))));
     }
   }
   drawPosts();
-  body.append(h("div", { class: "sec" }, h("h3", null, "Post it"),
-    h("p", { class: "fh" }, "Opening a site copies the title. Paste it, come back for the listing text, add the photos there, and tick the box so the shelf knows where it's up."),
-    posts));
+  const post = section("send", "Post it", first === "post",
+    h("p", { class: "fh" }, "Open copies the title. Then come back for the text."), posts);
 
   /* sold */
-  const soldSec = h("div", { class: "sec", id: "it-sold" });
+  const soldBox = h("div", { class: "stack", id: "it-sold" });
   const drawSold = () => {
-    soldSec.replaceChildren(h("h3", null, "Sold"));
+    soldBox.replaceChildren();
     if (cur.sold) {
       const s = cur.sold, profit = (s.price || 0) - (s.fee || 0) - (s.ship || 0) - (cur.cost || 0);
-      soldSec.append(h("p", null, "Sold for ", h("b", { class: "mono" }, money(s.price)), s.site ? " on " + (SITES[s.site] ? SITES[s.site].name : "another site") : "", " on " + day(s.at) + ". Fees about " + money(s.fee || 0) + (s.ship ? ", shipping " + money(s.ship) : "") + (cur.cost ? ", you paid " + money(cur.cost) : "") + ". ",
-        h("b", null, "Profit about " + money(profit) + ".")));
-      const still = Object.keys(SITES).filter(k => cur.posts[k] && cur.posts[k].on && k !== s.site);
-      if (still.length) soldSec.append(h("div", { class: "note" }, h("strong", null, "Take it down so it doesn't sell twice:"),
+      const kpi = (label, big) => h("div", { class: "kpi" }, h("span", { class: "fl" }, label), h("b", null, big));
+      soldBox.append(h("div", { class: "kpis" }, kpi("Sold for", money(s.price)), kpi("Fees + ship", money((s.fee || 0) + (s.ship || 0))), kpi("Profit", money(profit))),
+        h("p", { class: "small muted" }, h("span", { style: "display:inline-flex;gap:6px;align-items:center" }, dot(s.site), siteName(s.site) + ", " + day(s.at))));
+      const still = postedOn(cur).filter(k => k !== s.site);
+      if (still.length) soldBox.append(note("", "warn", h("strong", null, "Take it down so it doesn't sell twice"),
         h("div", { class: "row", style: "margin-top:8px" }, still.map(k => h("button", { class: "btn sm", type: "button", onclick: () => {
           cur.posts[k] = { ...cur.posts[k], on: false }; queueSave({ posts: { [k]: { on: false } } }); drawSold(); drawPosts();
-        } }, "Removed from " + SITES[k].name)))));
-      soldSec.append(h("div", { class: "row" }, confirmBtn("Undo sold", "Put it back on the shelf?", () => { set("sold", null); drawSold(); })));
+        } }, dot(k), "Removed from " + SITES[k].short)))));
+      soldBox.append(h("div", { class: "row" }, confirmBtn("Undo sold", "Back on the shelf?", () => { set("sold", null); drawSold(); })));
       return;
     }
-    const where = h("select", { class: "in", id: "sold-site" }, enabledSites().map(k => h("option", { value: k }, SITES[k].name)), h("option", { value: "other" }, "In person or somewhere else"));
-    const firstOn = enabledSites().find(k => cur.posts[k] && cur.posts[k].on); if (firstOn) where.value = firstOn;
-    const sp = h("input", { class: "in", id: "sold-price", inputmode: "decimal", placeholder: "0.00" }); sp.value = cur.price ?? "";
-    const ship = h("input", { class: "in", id: "sold-ship", inputmode: "decimal", placeholder: "0.00" });
-    soldSec.append(h("div", { class: "grid" },
+    const where = h("select", { class: "in", id: "sold-site" }, enabledSites().map(k => h("option", { value: k }, SITES[k].name)), h("option", { value: "other" }, "In person / other"));
+    const firstOn = postedOn(cur).find(k => S.cfg.sites[k]); if (firstOn) where.value = firstOn;
+    const sp = h("input", { class: "in", id: "sold-price", inputmode: "decimal", placeholder: "$0" }); sp.value = cur.price ?? "";
+    const ship = h("input", { class: "in", id: "sold-ship", inputmode: "decimal", placeholder: "$0" });
+    soldBox.append(h("div", { class: "grid" },
       h("label", { class: "f" }, h("span", { class: "fl" }, "Where"), where),
       h("label", { class: "f" }, h("span", { class: "fl" }, "Sold for"), sp),
       h("label", { class: "f" }, h("span", { class: "fl" }, "Shipping you paid"), ship)),
@@ -741,16 +899,31 @@ function renderSheet() {
         const price = num(sp.value); if (price == null) { toast("Put in what it sold for."); return; }
         const site = where.value, fee = SITES[site] ? Math.round(SITES[site].fee(price) * 100) / 100 : 0;
         set("sold", { price, site, ship: num(ship.value) || 0, fee, at: nowISO() }); drawSold();
-      } }, "Mark sold")));
+      } }, ic("check", 16), "Mark sold")));
   };
   drawSold();
-  body.append(soldSec);
+  const sold = section("check", "Sold", first === "sold", soldBox);
 
-  /* housekeeping */
-  body.append(h("div", { class: "sec" }, h("h3", null, "Keeping track"),
+  /* more */
+  const moreSec = section("more", "More", false,
     fld("Where it's stored", "spot", { ph: "Garage shelf B, blue bin" }),
     fld("Notes", "notes", { area: true, rows: 3 }),
-    h("div", { class: "row" }, confirmBtn("Delete this item", "Delete for good?", deleteItem, "btn sm danger"))));
+    h("div", { class: "row" }, confirmBtn("Delete item", "Delete for good?", deleteItem, "btn sm danger")));
+
+  body.append(listing.el, price.el, post.el, sold.el, moreSec.el);
+
+  meta = () => {
+    if (!cur) return;
+    const d = done();
+    for (const k of Object.keys(stepEls)) stepEls[k].classList.toggle("done", !!d[k]);
+    heroTitle.textContent = cur.title || "Untitled item";
+    listing.sum.textContent = [cur.condition, cur.flaws.length ? cur.flaws.length + (cur.flaws.length === 1 ? " flaw" : " flaws") : ""].filter(Boolean).join(" · ") || "Not written";
+    price.sum.textContent = cur.price ? money(cur.price) : "No price";
+    post.sum.textContent = postedOn(cur).map(k => SITES[k].short).join(", ") || "Not posted";
+    sold.sum.textContent = cur.sold ? money(cur.sold.price) : "";
+    moreSec.sum.textContent = cur.spot || "";
+  };
+  meta();
 }
 async function deleteItem() {
   const id = curId, photos = [...cur.photos];
@@ -767,17 +940,17 @@ async function photoBlobs() {
 }
 async function savePhotos() {
   let blobs;
-  try { blobs = await photoBlobs(); } catch { toast("Couldn't load the photos. Press and hold a photo to save it instead."); return; }
+  try { blobs = await photoBlobs(); } catch { toast("Couldn't load the photos. Press and hold one to save it."); return; }
   const base = (cur.title || "item").toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40) || "item";
   for (let i = 0; i < blobs.length; i++) {
     try { await S.downloads.save({ filename: base + "-" + (i + 1) + ".jpg", data: blobs[i] }); }
-    catch (e) { if (e && e.code === "declined") return; toast("Couldn't save here. Press and hold a photo to save it instead."); return; }
+    catch (e) { if (e && e.code === "declined") return; toast("Couldn't save here. Press and hold a photo instead."); return; }
   }
   toast("Photos saved");
 }
 async function reIdentify() {
   let blobs;
-  saveState("Claude is looking at the photos…");
+  saveState("Claude is looking…");
   try { blobs = await photoBlobs(); } catch { saveState("Saved"); toast("Couldn't load the photos for Claude."); return; }
   const id = curId;
   try {
@@ -789,41 +962,56 @@ async function reIdentify() {
 
 /* ---------- trends ---------- */
 function renderTrends() {
-  const v = $("#v-trends"); v.replaceChildren(h("h2", null, "What's moving"));
+  const v = $("#v-trends"); v.replaceChildren();
   const t = S.trends;
-  if (!t) {
-    v.append(h("p", { class: "muted" }, S.trendsLoaded ? "No trend notes yet. Claude fills this in from the web and refreshes it every week." : "Loading…"));
-    return;
-  }
-  v.append(h("p", { class: "muted" }, "Checked " + day(t.updatedAt) + ". Claude reads resale reports and seller news each week and updates this page. Treat it as a tip sheet, then confirm with sold prices."));
-  if (t.headline) v.append(h("div", { class: "note good" }, t.headline));
-  const mine = keys => {
-    if (!Array.isArray(keys) || !keys.length) return [];
-    return S.items.filter(i => !i.sold && !i.example && keys.some(k => [i.title, i.brand, i.category].join(" ").toLowerCase().includes(String(k).toLowerCase())));
-  };
-  for (const [key, title] of [["hot", "In demand"], ["soon", "Coming up"], ["glut", "Too much of it out there"]]) {
+  v.append(h("div", { class: "row" }, h("h2", { class: "grow" }, "What's moving"), t && h("span", { class: "pill" }, ic("clock", 12), "Updated " + day(t.updatedAt))));
+  if (!t) { v.append(h("p", { class: "muted" }, S.trendsLoaded ? "No trend notes yet. Claude fills this in weekly." : "Loading…")); return; }
+  if (t.headline) v.append(note("good", "spark", t.headline));
+  const mine = keys => Array.isArray(keys) && keys.length ? S.items.filter(i => !i.sold && !i.example && keys.some(k => [i.title, i.brand, i.category].join(" ").toLowerCase().includes(String(k).toLowerCase()))) : [];
+  for (const [key, title, icon] of [["hot", "Selling fast", "up"], ["soon", "Coming up", "clock"], ["glut", "Flooded, skip it", "down"]]) {
     const rows = Array.isArray(t[key]) ? t[key] : [];
     if (!rows.length) continue;
-    const sec = h("div", { class: "sec" }, h("h3", null, title));
-    const box = h("div", null);
+    const cards = h("div", { class: "tcards" });
     for (const r of rows) {
       const have = mine(r.match);
-      box.append(h("div", { class: "tr" }, h("strong", null, str(r.name)), h("p", null, str(r.why)),
-        r.where && h("p", { class: "small muted" }, "Sells best on: " + str(r.where)),
-        have.length ? h("p", { class: "small" }, h("span", { class: "pill sold" }, "on your shelf"), " " + have.slice(0, 3).map(i => i.title).join("; ")) : null));
+      const where = strs(String(r.where || "").split(","));
+      cards.append(h("div", { class: "tcard" }, h("strong", null, str(r.name)), h("p", { class: "muted" }, str(r.why)),
+        (where.length || have.length) ? h("div", { class: "chips wrapc" }, where.map(w => h("span", { class: "pill" }, w)),
+          have.length ? h("span", { class: "pill good" }, ic("box", 12), have.length + " on your shelf") : null) : null));
     }
-    sec.append(box); v.append(sec);
+    v.append(h("div", { class: "tgroup" }, h("div", { class: "thead" }, h("span", { class: "sico " + key }, ic(icon, 18)), h("h3", null, title)), cards));
   }
   const src = (Array.isArray(t.sources) ? t.sources : []).filter(s => httpsOnly(s.u));
-  if (src.length) v.append(h("div", { class: "f" }, h("span", { class: "fl" }, "Where this came from"),
-    h("ul", { class: "plain small" }, src.map(s => h("li", null, h("a", { href: httpsOnly(s.u), target: "_blank", rel: "noopener" }, str(s.t) || "Source"))))));
+  if (src.length) v.append(h("details", null, h("summary", { class: "small muted", style: "cursor:pointer" }, "Sources (" + src.length + ")"),
+    h("div", { class: "row", style: "margin-top:8px" }, src.map(s => h("a", { class: "btn sm", href: httpsOnly(s.u), target: "_blank", rel: "noopener" }, str(s.t) || "Source", ic("out", 14))))));
 }
 
 /* ---------- sites ---------- */
 function renderSites() {
   const v = $("#v-sites"); v.replaceChildren(h("h2", null, "Where you sell"));
-  v.append(h("p", { class: "muted" }, "Turn on the sites you use. Each item gets a post panel for those."));
-  const sec = h("div", { class: "sec" });
+  const rows = [
+    { k: "poshmark", label: "Poshmark", fee: SITES.poshmark.fee }, { k: "ebay", label: "eBay", fee: SITES.ebay.fee },
+    { k: "mercari", label: "Mercari", fee: SITES.mercari.fee }, { k: "fb", label: "Facebook, shipped", fee: SITES.fb.feeShip },
+    { k: "depop", label: "Depop", fee: SITES.depop.fee }, { k: "fb", label: "Facebook, local", fee: SITES.fb.fee },
+    { k: "craigslist", label: "Craigslist", fee: SITES.craigslist.fee }];
+  const title = h("h3", null), chart = h("div", { class: "fee", id: "fee-chart" });
+  const slider = h("input", { type: "range", id: "fee-price", min: 5, max: 300, step: 5, "aria-label": "Sale price" }); slider.value = S.feePrice;
+  const draw = () => {
+    const p = S.feePrice; title.textContent = "What each site takes from a " + money(p) + " sale";
+    const fees = rows.map(r => r.fee(p)), max = Math.max(...fees, 0.01);
+    chart.replaceChildren();
+    rows.forEach((r, i) => chart.append(
+      h("span", { class: "nm" }, dot(r.k), r.label),
+      h("div", { class: "trk", title: r.label + ": takes " + money(fees[i]) + ", you keep " + money(p - fees[i]) }, fees[i] > 0 && h("i", { style: "width:" + (fees[i] / max * 100) + "%" })),
+      h("span", { class: "val" }, money(Math.round(fees[i] * 100) / 100) || "$0")));
+  };
+  slider.addEventListener("input", () => { S.feePrice = +slider.value; draw(); });
+  draw();
+  v.append(h("div", { class: "sec" }, title, h("div", { class: "row" }, h("span", { class: "small muted mono" }, "$5"), h("div", { class: "grow" }, slider), h("span", { class: "small muted mono" }, "$300")), chart,
+    h("p", { class: "fh" }, "Fees checked " + FEES_CHECKED + ". Shipping and sales tax not included.")));
+
+  const sec = h("div", { class: "sec" }, h("h3", null, "Sites you use"));
+  const box = h("div", null);
   for (const k of Object.keys(SITES)) {
     const cb = h("input", { type: "checkbox", id: "site-" + k, checked: !!S.cfg.sites[k] });
     cb.addEventListener("change", async () => {
@@ -831,11 +1019,11 @@ function renderSites() {
       if (!S.db) return;
       try { await S.db.doc("config/app").set({ sites: S.cfg.sites, updatedAt: nowISO() }); } catch { toast("Couldn't save that."); }
     });
-    sec.append(h("div", { class: "site" }, h("label", { class: "check", for: "site-" + k }, cb, SITES[k].name), h("p", { class: "small muted" }, SITES[k].feeText)));
+    box.append(h("div", { class: "site" }, h("label", { class: "check", for: "site-" + k }, cb, dot(k), SITES[k].name, h("span", { class: "grow" }), h("span", { class: "small muted", style: "font-weight:400" }, SITES[k].feeText))));
   }
-  v.append(sec, h("p", { class: "fh" }, "Fees checked " + FEES_CHECKED + ". Sites change them, and the \"you keep\" numbers leave out shipping and sales tax."),
-    h("div", { class: "note info" }, h("strong", null, "Why posting isn't fully automatic. "),
-      "Facebook Marketplace, Mercari and Poshmark don't let outside apps post for you, and Depop only opens that door to approved business partners. eBay does allow it, but it needs a developer account and a small server. So for now each site is: open, paste, add photos."));
+  sec.append(box);
+  v.append(sec, h("details", { class: "sec" }, h("summary", null, h("span", { class: "sico" }, ic("warn", 18)), h("h3", null, "Why can't it post for me?"), h("span", { class: "chev", style: "margin-left:auto" }, ic("chev", 16))),
+    h("div", { class: "inner" }, h("p", { class: "small" }, "Facebook, Mercari and Poshmark don't let outside apps post. Depop only lets approved business partners. eBay does, but it needs a developer account. So it's open, paste, add photos."))));
 }
 
 /* ---------- boot ---------- */

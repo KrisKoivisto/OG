@@ -1,0 +1,870 @@
+<title>Resale Stockroom</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: one shelf of item rows, each with a yellow price sticker. Tabs sit at the thumb on phones, in the header on wide screens. */
+:root{
+  --bg:#EEF1ED; --surface:#FFFFFF; --ink:#15201B; --muted:#5A6A62; --line:#D3DBD5;
+  --tag:#F6C628; --tag-ink:#1B1A10;
+  --act:#17694B; --act-ink:#FFFFFF; --act-soft:#DDEDE4;
+  --warn:#8F4E00; --warn-soft:#FBEBD0; --info:#1F5FA8; --info-soft:#DCE8F7; --bad:#B3261E;
+  --font-d:"Bricolage Grotesque","Inter",system-ui,sans-serif;
+  --font-b:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-m:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101513; --surface:#19201D; --ink:#E7EDE9; --muted:#93A39B; --line:#2C3632;
+    --tag:#F6C628; --tag-ink:#1B1A10;
+    --act:#5CC198; --act-ink:#0B1A13; --act-soft:#1D332A;
+    --warn:#F0B35A; --warn-soft:#3A2C12; --info:#8DB8F0; --info-soft:#1B2A3F; --bad:#FF8A80;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101513; --surface:#19201D; --ink:#E7EDE9; --muted:#93A39B; --line:#2C3632;
+  --tag:#F6C628; --tag-ink:#1B1A10;
+  --act:#5CC198; --act-ink:#0B1A13; --act-soft:#1D332A;
+  --warn:#F0B35A; --warn-soft:#3A2C12; --info:#8DB8F0; --info-soft:#1B2A3F; --bad:#FF8A80;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-b);font-size:15px;line-height:1.45;padding-bottom:84px}
+h1,h2,h3{font-family:var(--font-d);margin:0;text-wrap:balance;line-height:1.15}
+h1{font-size:1.45rem;font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.2rem;font-weight:700}
+h3{font-size:1rem;font-weight:600}
+p{margin:0}
+a{color:var(--act)}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px 10px}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+.mono{font-family:var(--font-m);font-variant-numeric:tabular-nums}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.grow{flex:1 1 0;min-width:0}
+
+/* nav */
+#nav{position:fixed;inset:auto 0 0 0;z-index:20;display:flex;background:var(--surface);border-top:1px solid var(--line);
+  padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+#nav a{flex:1;text-align:center;text-decoration:none;color:var(--muted);font-weight:600;font-size:.9rem;padding:11px 4px;border-radius:8px}
+#nav a[aria-current="page"]{color:var(--act);background:var(--act-soft)}
+#nav a.add{color:var(--act)}
+@media (min-width:720px){
+  body{padding-bottom:32px}
+  #nav{position:static;border:0;background:none;padding:0;gap:4px}
+  #nav a{flex:none;padding:8px 14px}
+}
+
+/* controls */
+.btn{font:inherit;font-weight:600;font-size:.9rem;min-height:42px;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-align:center}
+.btn:hover{border-color:var(--muted)}
+.btn.pri{background:var(--act);border-color:var(--act);color:var(--act-ink)}
+.btn.sm{min-height:36px;padding:5px 11px;font-size:.84rem}
+.btn.danger{color:var(--bad)}
+.btn:disabled{opacity:.5;cursor:default}
+:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+.in{font:inherit;font-size:16px;width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+textarea.in{resize:vertical;min-height:92px;line-height:1.4}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.fl{font-size:.74rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.fh{font-size:.8rem;color:var(--muted)}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.chip{font:inherit;font-size:.84rem;font-weight:600;white-space:nowrap;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.note{background:var(--warn-soft);color:var(--ink);border-radius:8px;padding:10px 12px;font-size:.88rem}
+.note.info{background:var(--info-soft)}
+.note.good{background:var(--act-soft)}
+
+/* shelf */
+#sum{display:flex;flex-wrap:wrap;gap:6px 22px;font-size:.9rem;color:var(--muted)}
+#sum b{color:var(--ink);font-family:var(--font-m);font-weight:600}
+#list{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.item{display:flex;gap:12px;align-items:center;padding:12px 0;border:0;border-bottom:1px solid var(--line);background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;width:100%}
+.item:hover .ititle{text-decoration:underline}
+.thumb{flex:none;width:58px;height:58px;border-radius:6px;object-fit:cover;background:var(--line)}
+.thumb.none{display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--muted)}
+.ititle{font-weight:600;overflow-wrap:anywhere}
+.isub{font-size:.84rem;color:var(--muted);overflow-wrap:anywhere}
+.pill{display:inline-block;font-size:.72rem;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--line);color:var(--ink);white-space:nowrap}
+.pill.listed{background:var(--info-soft);color:var(--info)}
+.pill.sold{background:var(--act-soft);color:var(--act)}
+.pill.ready{background:var(--warn-soft);color:var(--warn)}
+.pill.stale{background:var(--warn-soft);color:var(--warn)}
+.sticker{flex:none;font-family:var(--font-m);font-weight:600;font-size:.95rem;background:var(--tag);color:var(--tag-ink);padding:5px 9px;border-radius:3px;transform:rotate(-2deg);box-shadow:0 1px 0 rgba(0,0,0,.18)}
+.sticker.blank{background:none;color:var(--muted);box-shadow:none;border:1px dashed var(--line);transform:none;font-weight:500}
+.empty{padding:36px 0;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.empty p{max-width:44ch;color:var(--muted)}
+
+/* add */
+.drop{display:flex;flex-direction:column;align-items:center;gap:6px;padding:26px 16px;border:2px dashed var(--line);border-radius:12px;background:var(--surface);cursor:pointer;text-align:center}
+.drop strong{font-family:var(--font-d);font-size:1.1rem}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap}
+.ph{position:relative;width:86px}
+.ph img{width:86px;height:86px;object-fit:cover;border-radius:8px;background:var(--line);display:block}
+.ph button{margin-top:4px;width:100%}
+
+/* sheet */
+#sheet{position:fixed;inset:0;z-index:30;overflow-y:auto;background:var(--bg)}
+.shead{position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--line)}
+.shead .wrap{display:flex;align-items:center;gap:12px;padding-block:calc(env(safe-area-inset-top,0px) + 10px) 10px}
+.sbody{padding-block:16px calc(40px + env(safe-area-inset-bottom,0px))}
+.sec{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.site{display:flex;flex-direction:column;gap:9px;padding-top:14px;border-top:1px solid var(--line)}
+.site:first-of-type{border-top:0;padding-top:0}
+.site h3{flex:1 1 auto}
+.check{display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer}
+.check input{width:20px;height:20px;accent-color:var(--act)}
+ul.plain{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.log{font-size:.88rem;display:flex;flex-direction:column;gap:6px}
+
+/* trends */
+.tr{display:flex;flex-direction:column;gap:4px;padding:12px 0;border-top:1px solid var(--line)}
+.tr:first-child{border-top:0;padding-top:0}
+.tr p{max-width:65ch}
+
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;font-size:.9rem;max-width:min(92vw,460px);text-align:center}
+#copybox{position:fixed;inset:auto 0 0 0;z-index:60;background:var(--surface);border-top:1px solid var(--line);padding:14px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px}
+@media (prefers-reduced-motion:no-preference){ .btn,.chip{transition:border-color .12s, background-color .12s} }
+</style>
+
+<header class="top"><div class="wrap">
+  <h1>Resale Stockroom</h1>
+  <nav id="nav" aria-label="Sections">
+    <a href="#shelf" data-v="shelf">Shelf</a>
+    <a href="#add" data-v="add" class="add">+ Add</a>
+    <a href="#trends" data-v="trends">Trends</a>
+    <a href="#sites" data-v="sites">Sites</a>
+  </nav>
+</div></header>
+
+<main class="wrap">
+  <section id="v-shelf" class="stack">
+    <div id="sum"></div>
+    <input id="q" class="in" type="search" placeholder="Search your items" aria-label="Search your items">
+    <div id="chips" class="chips"></div>
+    <div id="shelfnote" class="note" hidden></div>
+    <div id="list"></div>
+    <div class="row"><button id="csv" class="btn sm" hidden>Save the list as a spreadsheet</button></div>
+  </section>
+
+  <section id="v-add" class="stack" hidden>
+    <h2>Add an item</h2>
+    <label class="drop" for="pick">
+      <strong>Pick or take photos</strong>
+      <span class="muted small">Front, back, tags, and every flaw. The more Claude sees, the more honest the listing.</span>
+    </label>
+    <input id="pick" type="file" accept="image/*" multiple hidden>
+    <div id="picked" class="thumbs"></div>
+    <label class="f"><span class="fl">Anything the photos don't show</span>
+      <textarea id="add-notes" class="in" placeholder="Works fine. Tag says size M. Missing the charger."></textarea></label>
+    <label class="f" style="max-width:200px"><span class="fl">What you paid</span>
+      <input id="add-cost" class="in" inputmode="decimal" placeholder="0.00"></label>
+    <div class="row">
+      <button id="add-ai" class="btn pri">Identify it and write the listing</button>
+      <button id="add-plain" class="btn">Add without Claude</button>
+      <button id="add-stop" class="btn" hidden>Stop</button>
+    </div>
+    <div id="add-status" class="note info" hidden></div>
+  </section>
+
+  <section id="v-trends" class="stack" hidden></section>
+  <section id="v-sites" class="stack" hidden></section>
+</main>
+
+<div id="sheet" hidden></div>
+<div id="toast" role="status" hidden></div>
+<div id="copybox" hidden></div>
+
+<script>
+(() => {
+"use strict";
+
+/* ---------- selling sites. Fees checked Nov 25, 2026. ---------- */
+const FEES_CHECKED = "Nov 25, 2026";
+const SITES = {
+  ebay: { name: "eBay", short: "eBay", open: "https://www.ebay.com/sl/sell",
+    find: q => "https://www.ebay.com/sch/i.html?_nkw=" + q + "&LH_Sold=1&LH_Complete=1", findLabel: "eBay sold prices",
+    fee: p => p * 0.136 + (p > 10 ? 0.40 : 0.30), feeText: "13.6% plus $0.40 an order in most categories ($0.30 on orders of $10 or less)." },
+  fb: { name: "Facebook Marketplace", short: "FB", open: "https://www.facebook.com/marketplace/create/item",
+    find: q => "https://www.facebook.com/marketplace/search/?query=" + q, findLabel: "Facebook asking prices",
+    fee: () => 0, feeHint: "local pickup", feeText: "Free for local pickup. 10% (at least $0.80) if you ship through Facebook." },
+  mercari: { name: "Mercari", short: "Mercari", open: "https://www.mercari.com/sell/",
+    find: q => "https://www.mercari.com/search/?keyword=" + q, findLabel: "Mercari prices",
+    fee: p => p * 0.10, feeText: "10% of the sale." },
+  poshmark: { name: "Poshmark", short: "Posh", open: "https://poshmark.com/create-listing",
+    find: q => "https://poshmark.com/search?query=" + q + "&availability=sold_out", findLabel: "Poshmark sold prices",
+    fee: p => p < 15 ? 2.95 : p * 0.20, feeText: "$2.95 on sales under $15, 20% at $15 and up." },
+  depop: { name: "Depop", short: "Depop", open: "https://www.depop.com/products/create/",
+    find: q => "https://www.depop.com/search/?q=" + q, findLabel: "Depop prices",
+    fee: p => p * 0.033 + 0.45, feeText: "No selling fee in the US. Payment processing is about 3.3% plus $0.45." },
+  craigslist: { name: "Craigslist", short: "CL", open: "https://post.craigslist.org/",
+    fee: () => 0, feeText: "Free for most for-sale posts." },
+};
+const DEFAULT_ON = { ebay: true, fb: true, mercari: true, poshmark: true, depop: false, craigslist: false };
+const CONDITIONS = ["New with tags", "New without tags", "Like new", "Good", "Fair", "For parts or repair"];
+const STATUS_LABEL = { draft: "Needs info", ready: "Ready to post", listed: "Listed", sold: "Sold" };
+const STALE_DAYS = 30;
+
+/* ---------- state ---------- */
+const S = { db: null, assets: null, sample: null, downloads: null, maxImages: 0,
+  items: [], loaded: false, slow: false, dead: "", cfg: { sites: { ...DEFAULT_ON } }, trends: null, trendsLoaded: false,
+  filter: "all", q: "", picked: [] };
+let cur = null, curId = null;
+
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (k === "value") el.value = v;
+    else if (k === "checked" || k === "disabled" || k === "hidden" || k === "selected") el[k] = !!v;
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat(Infinity)) {
+    if (kid == null || kid === false) continue;
+    el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  }
+  return el;
+}
+const num = v => { const n = parseFloat(String(v ?? "").replace(/[^0-9.]/g, "")); return Number.isFinite(n) ? n : null; };
+const money = n => n == null ? "" : "$" + (Math.round(n * 100) % 100 === 0 ? Math.round(n).toLocaleString("en-US") : n.toFixed(2));
+const nowISO = () => new Date().toISOString();
+const day = iso => { const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleDateString("en-US", { month: "short", day: "numeric" }); };
+const daysSince = iso => { const d = new Date(iso); return isNaN(d) ? 0 : Math.max(0, Math.floor((Date.now() - d) / 864e5)); };
+const clone = o => JSON.parse(JSON.stringify(o ?? null));
+const str = v => (typeof v === "string" ? v : v == null ? "" : String(v)).trim();
+const strs = v => Array.isArray(v) ? v.map(str).filter(Boolean) : [];
+const httpsOnly = u => /^https:\/\//i.test(str(u)) ? str(u) : "";
+const enabledSites = () => Object.keys(SITES).filter(k => S.cfg.sites[k]);
+
+function statusOf(it) {
+  if (it.sold) return "sold";
+  if (Object.values(it.posts || {}).some(p => p && p.on)) return "listed";
+  if (it.title && it.price) return "ready";
+  return "draft";
+}
+function listedSince(it) {
+  const ds = Object.values(it.posts || {}).filter(p => p && p.on && p.at).map(p => p.at).sort();
+  return ds[0] || "";
+}
+const isStale = it => statusOf(it) === "listed" && daysSince(listedSince(it)) >= STALE_DAYS;
+
+let toastTimer;
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2600);
+}
+function copy(text, okMsg) {
+  const fallback = () => {
+    const box = $("#copybox"); box.replaceChildren();
+    const ta = h("textarea", { class: "in", id: "copy-ta", rows: 5, readonly: true }); ta.value = text;
+    box.append(h("p", { class: "small" }, "Copying is blocked here. The text is selected, so copy it yourself."), ta,
+      h("button", { class: "btn sm", onclick: () => { box.hidden = true; } }, "Done"));
+    box.hidden = false; ta.focus(); ta.select();
+  };
+  try { navigator.clipboard.writeText(text).then(() => toast(okMsg), fallback); } catch { fallback(); }
+}
+function confirmBtn(label, sure, fn, cls = "btn sm") {
+  let armed = false, timer;
+  const b = h("button", { class: cls, type: "button" }, label);
+  b.addEventListener("click", () => {
+    if (!armed) { armed = true; b.textContent = sure; timer = setTimeout(() => { armed = false; b.textContent = label; }, 4000); return; }
+    clearTimeout(timer); armed = false; b.textContent = label; fn();
+  });
+  return b;
+}
+async function shrink(file, max = 1600) {
+  try {
+    const bmp = await createImageBitmap(file);
+    const s = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(bmp.width * s)); c.height = Math.max(1, Math.round(bmp.height * s));
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    if (bmp.close) bmp.close();
+    const blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.85));
+    if (blob) return blob;
+  } catch { /* fall through to the original file */ }
+  return file;
+}
+const sampleMsg = e => ({
+  not_granted: "Claude isn't allowed on this page, so fill it in by hand.",
+  sampling_disabled: "Claude isn't available on this account, so fill it in by hand.",
+  images_unavailable: "This view can't send photos to Claude.",
+  image_rejected: "Claude couldn't read one of the photos. Try a different one.",
+  rate_limited: e && e.reason === "usage_limit" ? "You've hit your Claude usage limit. Try again later." : "Too many requests at once. Try again in a minute.",
+  session_expired: "Sign in to Claude again, then retry.",
+  refused: "Claude wouldn't write this one. Fill it in by hand.",
+  invalid_json: "Claude's answer came back garbled. Try again.",
+  cancelled: "Stopped.",
+}[e && e.code] || "Claude couldn't be reached. Try again.");
+
+/* ---------- Claude: identify from photos ---------- */
+function identifyPrompt(n, notes) {
+  return `You help a person who sells secondhand items online. The ${n} attached photo${n === 1 ? " shows" : "s show"} ONE item they want to sell.
+${notes ? 'What the seller told you: """' + notes.slice(0, 2000) + '"""' : "The seller gave no notes."}
+
+Work out what the item is and write the listing. Be flatly honest about wear. Never claim anything the photos or notes don't show (working order, authenticity, measurements, materials you can't see).
+
+Reply with only one JSON object with exactly these keys:
+{
+ "title": "search-friendly listing title, 80 characters or fewer: brand, what it is, model or style, size, color. No hype words, no ALL CAPS, no emoji.",
+ "brand": "brand name, or empty string if you can't tell",
+ "model": "model, style name or number, or empty string",
+ "category": "short category such as Men's jackets, Video games, Kitchen",
+ "size": "size if visible or stated, else empty string",
+ "color": "main color or colors",
+ "condition": "exactly one of: ${CONDITIONS.join(" | ")}",
+ "flaws": ["every bit of wear or damage you can see or were told about, one short blunt phrase each, e.g. 'scuff on left toe', 'small stain near hem'. Empty array if none."],
+ "unsure": ["things you can't tell from the photos that the seller should check before posting, e.g. 'does it power on', 'size tag not shown'. Empty array if none."],
+ "description": "2 to 4 short plain sentences on what it is and the details a buyer wants. Write like a normal person, not an ad. No exclamation marks, no emoji. Do NOT describe condition or flaws here; those are added from the flaws list.",
+ "keywords": ["up to 8 search words or phrases buyers use"],
+ "search": "the 3 to 6 words a buyer would type to find this exact item",
+ "priceLow": 0,
+ "priceHigh": 0,
+ "priceNote": "one sentence on what drives the price for this item. Say plainly if you are unsure.",
+ "bestSites": ["up to 3 of: ${Object.keys(SITES).join(", ")} where this kind of item sells best"],
+ "confidence": "high | medium | low: how sure you are about what the item is"
+}
+priceLow and priceHigh are a typical US used resale range in dollars for this item in this condition, from your general knowledge. Use 0 for both if you can't tell.`;
+}
+async function identify(blobs, notes, signal) {
+  const imgs = blobs.slice(0, Math.max(1, S.maxImages));
+  const r = await S.sample.json(identifyPrompt(imgs.length, notes), { images: imgs, signal, cache: false });
+  if (!r || typeof r !== "object" || Array.isArray(r)) throw { code: "invalid_json" };
+  return r;
+}
+function fromAI(r) {
+  const cond = CONDITIONS.find(c => c.toLowerCase() === str(r.condition).toLowerCase()) || "";
+  const lo = num(r.priceLow), hi = num(r.priceHigh);
+  return {
+    title: str(r.title).slice(0, 80), brand: str(r.brand), model: str(r.model), category: str(r.category),
+    size: str(r.size), color: str(r.color), condition: cond, flaws: strs(r.flaws), unsure: strs(r.unsure),
+    description: str(r.description), keywords: strs(r.keywords).slice(0, 8), search: str(r.search),
+    est: lo && hi ? { low: Math.min(lo, hi), high: Math.max(lo, hi), note: str(r.priceNote), at: nowISO() } : null,
+    bestSites: strs(r.bestSites).filter(k => SITES[k]).slice(0, 3), confidence: str(r.confidence).toLowerCase(),
+  };
+}
+
+/* ---------- listing text ---------- */
+function listingText(it, key) {
+  const parts = [];
+  if (key === "depop" && it.title) parts.push(it.title);
+  if (it.description) parts.push(it.description.trim());
+  const facts = [["Brand", it.brand], ["Model", it.model], ["Size", it.size], ["Color", it.color]].filter(x => x[1]).map(x => x[0] + ": " + x[1]);
+  if (facts.length) parts.push(facts.join("\n"));
+  const cond = [];
+  if (it.condition) cond.push("Condition: " + it.condition);
+  for (const f of it.flaws || []) cond.push("- " + f);
+  if (cond.length) parts.push(cond.join("\n"));
+  if (key === "depop" && (it.keywords || []).length)
+    parts.push(it.keywords.slice(0, 5).map(k => "#" + k.replace(/[^A-Za-z0-9]/g, "").toLowerCase()).filter(t => t.length > 1).join(" "));
+  return parts.join("\n\n");
+}
+const searchWords = it => encodeURIComponent(str(it.search) || [it.brand, it.model].filter(Boolean).join(" ") || str(it.title));
+
+/* ---------- routing ---------- */
+const VIEWS = ["shelf", "add", "trends", "sites"];
+function route() {
+  const v = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "shelf";
+  for (const name of VIEWS) $("#v-" + name).hidden = name !== v;
+  for (const a of document.querySelectorAll("#nav a")) {
+    if (a.dataset.v === v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  }
+  if (v === "trends") renderTrends();
+  if (v === "sites") renderSites();
+}
+addEventListener("hashchange", route);
+
+/* ---------- shelf ---------- */
+function renderShelf() {
+  const real = S.items.filter(i => !i.example);
+  const open = real.filter(i => !i.sold), sold = real.filter(i => i.sold);
+  const asking = open.reduce((s, i) => s + (i.price || 0), 0);
+  const soldSum = sold.reduce((s, i) => s + (i.sold.price || 0), 0);
+  const profit = sold.reduce((s, i) => s + ((i.sold.price || 0) - (i.sold.fee || 0) - (i.sold.ship || 0) - (i.cost || 0)), 0);
+  const sum = $("#sum"); sum.replaceChildren();
+  if (real.length) {
+    sum.append(h("span", null, h("b", null, open.length), " to sell"),
+      h("span", null, h("b", null, money(asking) || "$0"), " asking total"),
+      h("span", null, h("b", null, real.filter(i => statusOf(i) === "listed").length), " listed"));
+    if (sold.length) sum.append(h("span", null, h("b", null, money(soldSum)), " sold, about ", h("b", null, money(profit)), " profit"));
+  }
+
+  const counts = { all: S.items.length, todo: 0, listed: 0, stale: 0, sold: 0 };
+  for (const i of S.items) {
+    const st = statusOf(i);
+    if (st === "draft" || st === "ready") counts.todo++;
+    if (st === "listed") counts.listed++;
+    if (st === "sold") counts.sold++;
+    if (isStale(i)) counts.stale++;
+  }
+  const chips = $("#chips"); chips.replaceChildren();
+  for (const [k, label] of [["all", "All"], ["todo", "To post"], ["listed", "Listed"], ["stale", STALE_DAYS + "+ days"], ["sold", "Sold"]]) {
+    chips.append(h("button", { class: "chip", "aria-pressed": String(S.filter === k), onclick: () => { S.filter = k; renderShelf(); } }, label + " " + counts[k]));
+  }
+
+  const note = $("#shelfnote");
+  note.hidden = !(S.dead || (S.slow && !S.loaded));
+  note.textContent = S.dead || "Can't reach your inventory yet. It shows up as soon as the connection is back.";
+
+  const q = S.q.toLowerCase();
+  let rows = S.items.filter(i => {
+    const st = statusOf(i);
+    if (S.filter === "todo" && !(st === "draft" || st === "ready")) return false;
+    if (S.filter === "listed" && st !== "listed") return false;
+    if (S.filter === "sold" && st !== "sold") return false;
+    if (S.filter === "stale" && !isStale(i)) return false;
+    if (q && ![i.title, i.brand, i.model, i.category, i.spot, i.notes].join(" ").toLowerCase().includes(q)) return false;
+    return true;
+  });
+  rows.sort((a, b) => (!!a.sold - !!b.sold) || str(b.updatedAt).localeCompare(str(a.updatedAt)));
+
+  const list = $("#list"); list.replaceChildren();
+  $("#csv").hidden = !(S.downloads && real.length);
+  if (!S.items.length) {
+    list.append(h("div", { class: "empty" },
+      h("h2", null, S.loaded ? "Nothing on the shelf yet" : "Opening the stockroom…"),
+      S.loaded && h("p", null, "Take a few photos of something you want to sell. Claude names it, writes the listing and flags the wear. You set the price and post it."),
+      S.loaded && h("a", { class: "btn pri", href: "#add" }, "Add your first item")));
+    return;
+  }
+  if (!rows.length) { list.append(h("div", { class: "empty" }, h("p", null, "Nothing matches that."))); return; }
+  for (const it of rows) list.append(itemRow(it));
+}
+function itemRow(it) {
+  const st = statusOf(it);
+  const posted = Object.keys(SITES).filter(k => it.posts && it.posts[k] && it.posts[k].on).map(k => SITES[k].short);
+  const sub = [];
+  if (it.example) sub.push("Example, delete it any time");
+  if (st === "sold") sub.push("Sold " + day(it.sold.at) + (it.sold.site ? " on " + (SITES[it.sold.site] ? SITES[it.sold.site].name : it.sold.site) : ""));
+  else if (st === "listed") sub.push(posted.join(", ") + " · " + daysSince(listedSince(it)) + "d");
+  else if (it.condition) sub.push(it.condition);
+  if (it.spot) sub.push(it.spot);
+  const photo = (it.photos || [])[0];
+  const price = st === "sold" ? it.sold.price : it.price;
+  return h("button", { class: "item", type: "button", onclick: () => openItem(it.id) },
+    photo ? h("img", { class: "thumb", src: "/_blob/" + encodeURIComponent(photo), alt: "", loading: "lazy" }) : h("span", { class: "thumb none" }, "no photo"),
+    h("span", { class: "grow" },
+      h("span", { class: "ititle" }, it.title || "Untitled item"), h("br"),
+      h("span", { class: "isub" }, sub.join(" · ")), sub.length ? " " : null,
+      h("span", { class: "pill " + st }, STATUS_LABEL[st]),
+      isStale(it) && h("span", { class: "pill stale", style: "margin-left:4px" }, "sitting " + daysSince(listedSince(it)) + "d"),
+      it.market && it.market.signal && h("span", { class: "pill", style: "margin-left:4px" }, { up: "demand up", down: "cooling", steady: "steady" }[it.market.signal] || "")),
+    price ? h("span", { class: "sticker" }, money(price)) : h("span", { class: "sticker blank" }, "no price"));
+}
+$("#q").addEventListener("input", e => { S.q = e.target.value; renderShelf(); });
+$("#csv").addEventListener("click", async () => {
+  const cols = ["Title", "Brand", "Category", "Condition", "Status", "Paid", "Asking", "Lowest", "Posted on", "Listed", "Sold price", "Sold on", "Sold date", "Stored", "Notes"];
+  const cell = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+  const lines = [cols.map(cell).join(",")];
+  for (const i of S.items.filter(i => !i.example)) {
+    const posted = Object.keys(SITES).filter(k => i.posts && i.posts[k] && i.posts[k].on).map(k => SITES[k].name).join("; ");
+    lines.push([i.title, i.brand, i.category, i.condition, STATUS_LABEL[statusOf(i)], i.cost, i.price, i.floor, posted, listedSince(i).slice(0, 10),
+      i.sold ? i.sold.price : "", i.sold ? (SITES[i.sold.site] ? SITES[i.sold.site].name : i.sold.site) : "", i.sold ? str(i.sold.at).slice(0, 10) : "", i.spot, i.notes].map(cell).join(","));
+  }
+  try { await S.downloads.save({ filename: "resale-inventory.csv", data: lines.join("\r\n") }); toast("Saved"); }
+  catch (e) { if (!e || e.code !== "declined") toast("Couldn't save the file here."); }
+});
+
+/* ---------- add ---------- */
+function renderPicked() {
+  const box = $("#picked"); box.replaceChildren();
+  S.picked.forEach((p, i) => box.append(h("div", { class: "ph" },
+    h("img", { src: p.url, alt: "Photo " + (i + 1) }),
+    h("button", { class: "btn sm", type: "button", onclick: () => { URL.revokeObjectURL(p.url); S.picked.splice(i, 1); renderPicked(); } }, "Remove"))));
+}
+$("#pick").addEventListener("change", e => {
+  for (const f of e.target.files) if (f.type.startsWith("image/") || !f.type) S.picked.push({ file: f, url: URL.createObjectURL(f) });
+  e.target.value = ""; renderPicked();
+});
+let addCtl = null, adding = false;
+function addStatus(msg) { const el = $("#add-status"); el.hidden = !msg; el.textContent = msg || ""; }
+async function addItem(useAI) {
+  if (adding) return;
+  if (!S.db) { addStatus("Your inventory isn't connected yet, so this can't be saved. Open this page inside Claude."); return; }
+  if (useAI && !S.picked.length) { addStatus("Add at least one photo so Claude has something to look at."); return; }
+  adding = true; $("#add-ai").disabled = $("#add-plain").disabled = true;
+  const notes = $("#add-notes").value.trim(), cost = num($("#add-cost").value);
+  try {
+    addStatus(S.picked.length ? "Getting the photos ready…" : "Saving…");
+    const blobs = await Promise.all(S.picked.map(p => shrink(p.file)));
+    let ai = null, aiNote = "";
+    let aiP = Promise.resolve();
+    if (useAI) {
+      addCtl = new AbortController(); $("#add-stop").hidden = false;
+      aiP = identify(blobs, notes, addCtl.signal).then(r => { ai = fromAI(r); }, e => { aiNote = sampleMsg(e); });
+    }
+    const ids = []; let failed = 0;
+    if (S.assets) {
+      for (let i = 0; i < blobs.length; i++) {
+        addStatus("Saving photo " + (i + 1) + " of " + blobs.length + (useAI ? ". Claude is looking at them too…" : "…"));
+        try { ids.push((await S.assets.upload(blobs[i])).id); } catch { failed++; }
+      }
+    } else failed = blobs.length;
+    if (useAI) addStatus("Claude is looking at the photos. This takes up to a minute…");
+    await aiP;
+    const t = nowISO();
+    const item = { title: "", brand: "", model: "", category: "", size: "", color: "", condition: "", flaws: [], unsure: [], description: "",
+      keywords: [], search: "", est: null, bestSites: [], confidence: "", ...(ai || {}),
+      photos: ids, cost, price: null, floor: null, comps: [], posts: {}, sold: null, spot: "", notes, createdAt: t, updatedAt: t };
+    item.status = statusOf(item);
+    const ref = S.db.collection("items").doc();
+    await ref.set(item);
+    S.picked.forEach(p => URL.revokeObjectURL(p.url)); S.picked = []; renderPicked();
+    $("#add-notes").value = ""; $("#add-cost").value = ""; addStatus("");
+    location.hash = "#shelf";
+    openItem(ref.id, item);
+    const bits = [];
+    if (aiNote && aiNote !== "Stopped.") bits.push(aiNote);
+    if (failed) bits.push(failed + " photo" + (failed === 1 ? "" : "s") + " didn't save.");
+    if (bits.length) toast(bits.join(" "));
+  } catch (e) {
+    addStatus("That didn't save. Check your connection and try again.");
+  } finally {
+    adding = false; addCtl = null; $("#add-stop").hidden = true;
+    $("#add-ai").disabled = $("#add-plain").disabled = false;
+  }
+}
+$("#add-ai").addEventListener("click", () => addItem(true));
+$("#add-plain").addEventListener("click", () => addItem(false));
+$("#add-stop").addEventListener("click", () => { if (addCtl) addCtl.abort(); });
+
+/* ---------- item sheet ---------- */
+let pending = {}, saveTimer, saveEl;
+function saveState(t) { if (saveEl) saveEl.textContent = t; }
+function deepMerge(into, from) {
+  for (const k of Object.keys(from)) {
+    const v = from[k], t = into[k];
+    if (v && typeof v === "object" && !Array.isArray(v) && t && typeof t === "object" && !Array.isArray(t)) deepMerge(t, v);
+    else into[k] = v && typeof v === "object" ? clone(v) : v;
+  }
+  return into;
+}
+function queueSave(patch) {
+  deepMerge(pending, patch); saveState("Saving…");
+  clearTimeout(saveTimer); saveTimer = setTimeout(flush, 700);
+}
+let flushP = Promise.resolve();
+function flush() { flushP = flushP.then(doFlush); return flushP; }
+async function doFlush() {
+  clearTimeout(saveTimer);
+  if (!curId || !Object.keys(pending).length) return;
+  const patch = pending, id = curId; pending = {};
+  patch.updatedAt = nowISO(); patch.status = statusOf(cur);
+  try { await S.db.doc("items/" + id).update(patch); }
+  catch (e) { if (curId === id) pending = deepMerge(patch, pending); saveState("Not saved. Check your connection."); return; }
+  if (curId === id && Object.keys(pending).length) return;
+  saveState("Saved");
+}
+function set(key, val) { cur[key] = val; queueSave({ [key]: val }); }
+
+function openItem(id, seed) {
+  const it = seed || S.items.find(i => i.id === id);
+  if (!it) return;
+  cur = clone(it); curId = id; pending = {};
+  cur.posts = cur.posts || {}; cur.photos = cur.photos || []; cur.flaws = cur.flaws || []; cur.comps = cur.comps || []; cur.keywords = cur.keywords || [];
+  document.documentElement.style.overflow = "hidden";
+  renderSheet(); $("#sheet").hidden = false; $("#sheet").scrollTop = 0;
+}
+async function closeItem() {
+  await flush();
+  $("#sheet").hidden = true; $("#sheet").replaceChildren();
+  document.documentElement.style.overflow = "";
+  cur = null; curId = null; renderShelf();
+}
+function fld(label, key, o = {}) {
+  const el = h(o.area ? "textarea" : "input", { class: "in", id: "it-" + key, inputmode: o.money ? "decimal" : null, placeholder: o.ph || null, maxlength: o.max || null, rows: o.rows || null });
+  el.value = o.get ? o.get() : (cur[key] ?? "");
+  const hint = h("span", { class: "fh" }, o.hint || "");
+  const upd = () => { if (o.count) hint.textContent = el.value.length + " of " + o.max + " characters"; };
+  el.addEventListener("input", () => { const v = o.money ? num(el.value) : o.set ? o.set(el.value) : el.value; set(key, v); upd(); if (o.after) o.after(); });
+  upd();
+  return h("label", { class: "f" + (o.cls ? " " + o.cls : "") }, h("span", { class: "fl" }, label), el, (o.hint || o.count) && hint);
+}
+function renderSheet() {
+  const sh = $("#sheet"); sh.replaceChildren();
+  saveEl = h("span", { class: "small muted", role: "status" }, "Saved");
+  sh.append(h("div", { class: "shead" }, h("div", { class: "wrap" },
+    h("button", { class: "btn sm", type: "button", onclick: closeItem }, "‹ Shelf"),
+    h("span", { class: "grow" }), saveEl)));
+  const body = h("div", { class: "wrap sbody stack" });
+  sh.append(body);
+
+  if (cur.example) body.append(h("div", { class: "note info" }, "This is an example so you can see how an item looks. Delete it at the bottom whenever you like."));
+
+  /* photos */
+  const photos = h("div", { class: "thumbs", id: "it-photos" });
+  const drawPhotos = () => {
+    photos.replaceChildren();
+    cur.photos.forEach((pid, i) => photos.append(h("div", { class: "ph" },
+      h("img", { src: "/_blob/" + encodeURIComponent(pid), alt: "Photo " + (i + 1), loading: "lazy" }),
+      S.assets && confirmBtn("Remove", "Sure?", async () => {
+        cur.photos = cur.photos.filter(x => x !== pid); queueSave({ photos: cur.photos }); drawPhotos();
+        try { await S.assets.delete(pid); } catch { /* the file stays stored, the item no longer points at it */ }
+      }))));
+    if (!cur.photos.length) photos.append(h("p", { class: "muted small" }, "No photos yet."));
+  };
+  drawPhotos();
+  const more = h("input", { type: "file", id: "it-more", accept: "image/*", multiple: true, hidden: true });
+  more.addEventListener("change", async () => {
+    const files = [...more.files]; more.value = "";
+    for (const f of files) {
+      saveState("Saving photo…");
+      try { const r = await S.assets.upload(await shrink(f)); cur.photos = [...cur.photos, r.id]; queueSave({ photos: cur.photos }); drawPhotos(); }
+      catch { toast("A photo didn't save."); }
+    }
+  });
+  const photoBtns = h("div", { class: "row" });
+  if (S.assets) photoBtns.append(h("label", { class: "btn sm", for: "it-more" }, "Add photos"), more);
+  if (S.downloads && cur.photos.length) photoBtns.append(h("button", { class: "btn sm", type: "button", onclick: savePhotos }, "Save photos to this device"));
+  if (S.sample && S.maxImages && cur.photos.length) photoBtns.append(confirmBtn("Have Claude redo the listing", "Replace what's written?", reIdentify));
+  body.append(h("div", { class: "sec" }, h("h3", null, "Photos"), photos, photoBtns,
+    h("p", { class: "fh" }, "The selling sites need the photos from your phone's photo library. If you took them inside this page, save them to the device first.")));
+
+  /* what it is */
+  const unsure = (cur.unsure || []).length ? h("div", { class: "note" }, h("strong", null, "Check before you post"), h("ul", { class: "plain" }, cur.unsure.map(u => h("li", null, u)))) : null;
+  body.append(h("div", { class: "sec" }, h("h3", null, "The listing"),
+    cur.confidence === "low" && h("div", { class: "note" }, "Claude wasn't sure what this is. Read it over before you trust it."),
+    unsure,
+    fld("Title", "title", { max: 80, count: true, after: drawPosts }),
+    h("div", { class: "grid" },
+      fld("Brand", "brand"), fld("Model or style", "model"), fld("Category", "category"), fld("Size", "size"), fld("Color", "color"),
+      (() => {
+        const sel = h("select", { class: "in", id: "it-condition" }, h("option", { value: "" }, "Pick one"), CONDITIONS.map(c => h("option", { value: c, selected: cur.condition === c }, c)));
+        sel.addEventListener("change", () => set("condition", sel.value));
+        return h("label", { class: "f" }, h("span", { class: "fl" }, "Condition"), sel);
+      })()),
+    fld("Wear and flaws, one per line", "flaws", { area: true, rows: 3, get: () => cur.flaws.join("\n"), set: v => v.split("\n").map(s => s.trim()).filter(Boolean), ph: "Scuff on left toe\nSmall stain near hem", hint: "These go into every listing word for word. Honest listings get fewer returns." }),
+    fld("Description", "description", { area: true, rows: 5 }),
+    fld("Search words for price checks", "search", { ph: "patagonia better sweater mens medium" })));
+
+  /* money */
+  const est = cur.est && cur.est.low ? h("div", { class: "note info" },
+    h("strong", null, "Claude's guess: " + money(cur.est.low) + " to " + money(cur.est.high)), ". ", cur.est.note || "",
+    " This is from memory, not live sales. Check sold prices before you settle on a number.") : null;
+  const links = h("div", { class: "row" });
+  for (const k of Object.keys(SITES)) if (SITES[k].find && (k === "ebay" || S.cfg.sites[k]))
+    links.append(h("a", { class: "btn sm", target: "_blank", rel: "noopener", href: SITES[k].find(searchWords(cur)), onclick: e => { e.currentTarget.href = SITES[k].find(searchWords(cur)); } }, SITES[k].findLabel + " ↗"));
+  const logBox = h("div", { class: "log" });
+  const drawLog = () => {
+    logBox.replaceChildren();
+    for (const c of [...cur.comps].reverse().slice(0, 8))
+      logBox.append(h("div", null, h("span", { class: "mono" }, day(c.at) + "  " + money(c.low) + (c.high && c.high !== c.low ? "–" + money(c.high) : "")), c.note ? "  " + c.note : ""));
+  };
+  drawLog();
+  const cLow = h("input", { class: "in", id: "comp-low", inputmode: "decimal", placeholder: "Low" });
+  const cHigh = h("input", { class: "in", id: "comp-high", inputmode: "decimal", placeholder: "High" });
+  const cNote = h("input", { class: "in", id: "comp-note", placeholder: "Where you saw it" });
+  const market = cur.market && cur.market.note ? h("div", { class: "note good" }, h("strong", null, "Market check, " + day(cur.market.at) + ": "), cur.market.note) : null;
+  body.append(h("div", { class: "sec" }, h("h3", null, "Price"),
+    h("div", { class: "grid" },
+      fld("Asking", "price", { money: true, ph: "0.00", after: drawPosts }),
+      fld("Lowest you'll take", "floor", { money: true, ph: "0.00" }),
+      fld("What you paid", "cost", { money: true, ph: "0.00" })),
+    est, market, links,
+    h("div", { class: "f" }, h("span", { class: "fl" }, "Log what you found"),
+      h("div", { class: "grid", style: "grid-template-columns:repeat(auto-fit,minmax(90px,1fr))" }, cLow, cHigh, cNote,
+        h("button", { class: "btn sm", type: "button", onclick: () => {
+          const lo = num(cLow.value), hi = num(cHigh.value) ?? lo;
+          if (lo == null) { toast("Put in at least the low price."); return; }
+          cur.comps = [...cur.comps, { at: nowISO(), low: Math.min(lo, hi), high: Math.max(lo, hi), note: cNote.value.trim() }].slice(-40);
+          queueSave({ comps: cur.comps }); cLow.value = cHigh.value = cNote.value = ""; drawLog();
+        } }, "Log it"))),
+    logBox));
+
+  /* post */
+  const posts = h("div", { class: "stack", id: "it-posts" });
+  function drawPosts() {
+    posts.replaceChildren();
+    const keys = enabledSites();
+    if (!keys.length) { posts.append(h("p", { class: "muted" }, "No sites turned on. Pick them under Sites.")); return; }
+    for (const k of keys) {
+      const site = SITES[k], p = cur.posts[k] || {};
+      const fee = cur.price ? site.fee(cur.price) : null;
+      const keep = cur.price ? h("span", { class: "small muted" }, "You keep about ", h("b", { class: "mono" }, money(Math.max(0, cur.price - fee))), " of " + money(cur.price) + (site.feeHint ? " (" + site.feeHint + ")" : "")) : null;
+      const best = (cur.bestSites || []).includes(k) ? h("span", { class: "pill sold" }, "good fit") : null;
+      const url = h("input", { class: "in", id: "post-url-" + k, type: "url", placeholder: "Paste the link to your listing" }); url.value = p.url || "";
+      url.addEventListener("input", () => { cur.posts[k] = { ...(cur.posts[k] || {}), url: url.value.trim() }; queueSave({ posts: { [k]: { url: url.value.trim() } } }); });
+      const on = h("input", { type: "checkbox", id: "post-on-" + k, checked: !!p.on });
+      on.addEventListener("change", () => {
+        const at = on.checked ? (p.at || nowISO()) : (p.at || "");
+        cur.posts[k] = { ...(cur.posts[k] || {}), on: on.checked, at };
+        queueSave({ posts: { [k]: { on: on.checked, at } } }); drawPosts();
+      });
+      const view = httpsOnly(p.url);
+      posts.append(h("div", { class: "site" },
+        h("div", { class: "row" }, h("h3", null, site.name), best), keep,
+        h("div", { class: "row" },
+          h("a", { class: "btn sm pri", href: site.open, target: "_blank", rel: "noopener", onclick: () => { if (cur.title) copy(cur.title, "Title copied. Paste it on " + site.name + "."); } }, "Open " + site.name + " ↗"),
+          h("button", { class: "btn sm", type: "button", onclick: () => copy(listingText(cur, k), "Listing text copied") }, "Copy listing text"),
+          h("button", { class: "btn sm", type: "button", onclick: () => copy(cur.title || "", "Title copied") }, "Copy title")),
+        h("label", { class: "check", for: "post-on-" + k }, on, p.on ? "Posted " + day(p.at) + " · " + daysSince(p.at) + " days up" : "I posted it here"),
+        p.on && h("div", { class: "row" }, h("div", { class: "grow" }, url), view && h("a", { class: "btn sm", href: view, target: "_blank", rel: "noopener" }, "View ↗"))));
+    }
+  }
+  drawPosts();
+  body.append(h("div", { class: "sec" }, h("h3", null, "Post it"),
+    h("p", { class: "fh" }, "Opening a site copies the title. Paste it, come back for the listing text, add the photos there, and tick the box so the shelf knows where it's up."),
+    posts));
+
+  /* sold */
+  const soldSec = h("div", { class: "sec", id: "it-sold" });
+  const drawSold = () => {
+    soldSec.replaceChildren(h("h3", null, "Sold"));
+    if (cur.sold) {
+      const s = cur.sold, profit = (s.price || 0) - (s.fee || 0) - (s.ship || 0) - (cur.cost || 0);
+      soldSec.append(h("p", null, "Sold for ", h("b", { class: "mono" }, money(s.price)), s.site ? " on " + (SITES[s.site] ? SITES[s.site].name : "another site") : "", " on " + day(s.at) + ". Fees about " + money(s.fee || 0) + (s.ship ? ", shipping " + money(s.ship) : "") + (cur.cost ? ", you paid " + money(cur.cost) : "") + ". ",
+        h("b", null, "Profit about " + money(profit) + ".")));
+      const still = Object.keys(SITES).filter(k => cur.posts[k] && cur.posts[k].on && k !== s.site);
+      if (still.length) soldSec.append(h("div", { class: "note" }, h("strong", null, "Take it down so it doesn't sell twice:"),
+        h("div", { class: "row", style: "margin-top:8px" }, still.map(k => h("button", { class: "btn sm", type: "button", onclick: () => {
+          cur.posts[k] = { ...cur.posts[k], on: false }; queueSave({ posts: { [k]: { on: false } } }); drawSold(); drawPosts();
+        } }, "Removed from " + SITES[k].name)))));
+      soldSec.append(h("div", { class: "row" }, confirmBtn("Undo sold", "Put it back on the shelf?", () => { set("sold", null); drawSold(); })));
+      return;
+    }
+    const where = h("select", { class: "in", id: "sold-site" }, enabledSites().map(k => h("option", { value: k }, SITES[k].name)), h("option", { value: "other" }, "In person or somewhere else"));
+    const firstOn = enabledSites().find(k => cur.posts[k] && cur.posts[k].on); if (firstOn) where.value = firstOn;
+    const sp = h("input", { class: "in", id: "sold-price", inputmode: "decimal", placeholder: "0.00" }); sp.value = cur.price ?? "";
+    const ship = h("input", { class: "in", id: "sold-ship", inputmode: "decimal", placeholder: "0.00" });
+    soldSec.append(h("div", { class: "grid" },
+      h("label", { class: "f" }, h("span", { class: "fl" }, "Where"), where),
+      h("label", { class: "f" }, h("span", { class: "fl" }, "Sold for"), sp),
+      h("label", { class: "f" }, h("span", { class: "fl" }, "Shipping you paid"), ship)),
+      h("div", { class: "row" }, h("button", { class: "btn pri", type: "button", onclick: () => {
+        const price = num(sp.value); if (price == null) { toast("Put in what it sold for."); return; }
+        const site = where.value, fee = SITES[site] ? Math.round(SITES[site].fee(price) * 100) / 100 : 0;
+        set("sold", { price, site, ship: num(ship.value) || 0, fee, at: nowISO() }); drawSold();
+      } }, "Mark sold")));
+  };
+  drawSold();
+  body.append(soldSec);
+
+  /* housekeeping */
+  body.append(h("div", { class: "sec" }, h("h3", null, "Keeping track"),
+    fld("Where it's stored", "spot", { ph: "Garage shelf B, blue bin" }),
+    fld("Notes", "notes", { area: true, rows: 3 }),
+    h("div", { class: "row" }, confirmBtn("Delete this item", "Delete for good?", deleteItem, "btn sm danger"))));
+}
+async function deleteItem() {
+  const id = curId, photos = [...cur.photos];
+  clearTimeout(saveTimer); pending = {};
+  try { await S.db.doc("items/" + id).delete(); } catch { toast("Couldn't delete. Check your connection."); return; }
+  if (S.assets) for (const p of photos) { try { await S.assets.delete(p); } catch { /* leftover file */ } }
+  S.items = S.items.filter(i => i.id !== id);
+  curId = null; await closeItem(); toast("Deleted");
+}
+async function photoBlobs() {
+  const out = [];
+  for (const pid of cur.photos) { const r = await fetch("/_blob/" + encodeURIComponent(pid)); if (!r.ok) throw new Error("photo"); out.push(await r.blob()); }
+  return out;
+}
+async function savePhotos() {
+  let blobs;
+  try { blobs = await photoBlobs(); } catch { toast("Couldn't load the photos. Press and hold a photo to save it instead."); return; }
+  const base = (cur.title || "item").toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40) || "item";
+  for (let i = 0; i < blobs.length; i++) {
+    try { await S.downloads.save({ filename: base + "-" + (i + 1) + ".jpg", data: blobs[i] }); }
+    catch (e) { if (e && e.code === "declined") return; toast("Couldn't save here. Press and hold a photo to save it instead."); return; }
+  }
+  toast("Photos saved");
+}
+async function reIdentify() {
+  let blobs;
+  saveState("Claude is looking at the photos…");
+  try { blobs = await photoBlobs(); } catch { saveState("Saved"); toast("Couldn't load the photos for Claude."); return; }
+  const id = curId;
+  try {
+    const ai = fromAI(await identify(blobs, cur.notes || ""));
+    if (curId !== id) return;
+    Object.assign(cur, ai); queueSave(ai); renderSheet(); toast("Listing rewritten");
+  } catch (e) { saveState("Saved"); toast(sampleMsg(e)); }
+}
+
+/* ---------- trends ---------- */
+function renderTrends() {
+  const v = $("#v-trends"); v.replaceChildren(h("h2", null, "What's moving"));
+  const t = S.trends;
+  if (!t) {
+    v.append(h("p", { class: "muted" }, S.trendsLoaded ? "No trend notes yet. Claude fills this in from the web and refreshes it every week." : "Loading…"));
+    return;
+  }
+  v.append(h("p", { class: "muted" }, "Checked " + day(t.updatedAt) + ". Claude reads resale reports and seller news each week and updates this page. Treat it as a tip sheet, then confirm with sold prices."));
+  if (t.headline) v.append(h("div", { class: "note good" }, t.headline));
+  const mine = keys => {
+    if (!Array.isArray(keys) || !keys.length) return [];
+    return S.items.filter(i => !i.sold && !i.example && keys.some(k => [i.title, i.brand, i.category].join(" ").toLowerCase().includes(String(k).toLowerCase())));
+  };
+  for (const [key, title] of [["hot", "In demand"], ["soon", "Coming up"], ["glut", "Too much of it out there"]]) {
+    const rows = Array.isArray(t[key]) ? t[key] : [];
+    if (!rows.length) continue;
+    const sec = h("div", { class: "sec" }, h("h3", null, title));
+    const box = h("div", null);
+    for (const r of rows) {
+      const have = mine(r.match);
+      box.append(h("div", { class: "tr" }, h("strong", null, str(r.name)), h("p", null, str(r.why)),
+        r.where && h("p", { class: "small muted" }, "Sells best on: " + str(r.where)),
+        have.length ? h("p", { class: "small" }, h("span", { class: "pill sold" }, "on your shelf"), " " + have.slice(0, 3).map(i => i.title).join("; ")) : null));
+    }
+    sec.append(box); v.append(sec);
+  }
+  const src = (Array.isArray(t.sources) ? t.sources : []).filter(s => httpsOnly(s.u));
+  if (src.length) v.append(h("div", { class: "f" }, h("span", { class: "fl" }, "Where this came from"),
+    h("ul", { class: "plain small" }, src.map(s => h("li", null, h("a", { href: httpsOnly(s.u), target: "_blank", rel: "noopener" }, str(s.t) || "Source"))))));
+}
+
+/* ---------- sites ---------- */
+function renderSites() {
+  const v = $("#v-sites"); v.replaceChildren(h("h2", null, "Where you sell"));
+  v.append(h("p", { class: "muted" }, "Turn on the sites you use. Each item gets a post panel for those."));
+  const sec = h("div", { class: "sec" });
+  for (const k of Object.keys(SITES)) {
+    const cb = h("input", { type: "checkbox", id: "site-" + k, checked: !!S.cfg.sites[k] });
+    cb.addEventListener("change", async () => {
+      S.cfg.sites = { ...S.cfg.sites, [k]: cb.checked };
+      if (!S.db) return;
+      try { await S.db.doc("config/app").set({ sites: S.cfg.sites, updatedAt: nowISO() }); } catch { toast("Couldn't save that."); }
+    });
+    sec.append(h("div", { class: "site" }, h("label", { class: "check", for: "site-" + k }, cb, SITES[k].name), h("p", { class: "small muted" }, SITES[k].feeText)));
+  }
+  v.append(sec, h("p", { class: "fh" }, "Fees checked " + FEES_CHECKED + ". Sites change them, and the \"you keep\" numbers leave out shipping and sales tax."),
+    h("div", { class: "note info" }, h("strong", null, "Why posting isn't fully automatic. "),
+      "Facebook Marketplace, Mercari and Poshmark don't let outside apps post for you, and Depop only opens that door to approved business partners. eBay does allow it, but it needs a developer account and a small server. So for now each site is: open, paste, add photos."));
+}
+
+/* ---------- boot ---------- */
+route(); renderShelf();
+(async () => {
+  const c = window.claude;
+  if (!c || !c.use) { S.loaded = true; S.dead = "Open this page inside Claude to load and save your inventory."; renderShelf(); return; }
+  const use = n => c.use(n).catch(() => null);
+  const [db, assets, sample, downloads] = await Promise.all([use("db"), use("assets"), use("sample"), use("downloads")]);
+  Object.assign(S, { db, assets, sample, downloads });
+  if (sample) { try { const lim = await sample.limits(); S.maxImages = lim && lim.images ? lim.images.maxCount : 0; } catch { S.maxImages = 0; } }
+  $("#add-ai").hidden = !(sample && S.maxImages);
+  if (!db) { S.loaded = true; S.dead = "Your inventory can't be reached from this view. Open it signed in to Claude."; renderShelf(); return; }
+  const slowTimer = setTimeout(() => { S.slow = true; renderShelf(); }, 10000);
+  db.collection("items").onSnapshot(snap => {
+    S.items = snap.docs.map(d => ({ ...clone(d.data()), id: d.id }));
+    if (!snap.metadata.fromCache) { clearTimeout(slowTimer); S.slow = false; S.loaded = true; }
+    else if (S.items.length) S.loaded = true;
+    renderShelf(); if (!$("#v-trends").hidden) renderTrends();
+  }, () => { clearTimeout(slowTimer); S.loaded = true; S.dead = "Lost the connection to your inventory. Reopen the page to try again."; renderShelf(); });
+  db.doc("config/app").onSnapshot(snap => {
+    const d = snap.exists ? snap.data() : null;
+    S.cfg = { sites: { ...DEFAULT_ON, ...((d && d.sites) || {}) } };
+    if (!$("#v-sites").hidden) renderSites();
+  }, () => {});
+  db.doc("trends/current").onSnapshot(snap => {
+    S.trends = snap.exists ? clone(snap.data()) : null; S.trendsLoaded = true;
+    if (!$("#v-trends").hidden) renderTrends();
+  }, () => { S.trendsLoaded = true; });
+})();
+})();
+</script>

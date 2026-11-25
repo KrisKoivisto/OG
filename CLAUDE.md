@@ -2,6 +2,7 @@
 
 - Casual, short, direct. Short sentences. Don't let it read like AI.
 - Fewer words, more to look at. Bullets, images, charts and graphics beat paragraphs, in replies and in anything built for him. (Nov 25, 2026)
+- Kris flips sneakers and electronics. Design for that: modern, dark, bold, streetwear. Nothing cozy or crafty. (Nov 25, 2026)
 - Every link is a clickable hyperlink with a name, never a bare URL.
 - Don't ask Kris to do things unless there's truly no other way. No Terminal, no git.
 - Triple check and search the web before saying something works.

@@ -84,6 +84,10 @@ textarea.in{resize:vertical;min-height:84px;line-height:1.4}
 .chip b{font-family:var(--font-m);font-weight:600;margin-left:4px}
 .fchip{display:inline-flex;align-items:center;gap:6px;font-size:.86rem;padding:5px 6px 5px 11px;border-radius:999px;background:var(--warn-soft);color:var(--ink)}
 .fchip button{font:inherit;border:0;background:none;color:var(--muted);cursor:pointer;width:24px;height:24px;border-radius:50%;line-height:1}
+.pick{font:inherit;color:inherit;display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer}
+.pick[aria-pressed="true"]{border-color:var(--act);background:var(--act-soft)}
+.pick .mono{white-space:nowrap;font-size:.86rem}
+.sticker.big{font-size:1.5rem;padding:6px 13px}
 .note{display:flex;gap:10px;align-items:flex-start;background:var(--warn-soft);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:.88rem}
 .note .ic{color:var(--warn);margin-top:1px}
 .note.info{background:var(--info-soft)} .note.info .ic{color:var(--info)}
@@ -443,9 +447,16 @@ Reply with only one JSON object with exactly these keys:
  "priceHigh": 0,
  "priceNote": "one short sentence on what drives the price for this item. Say plainly if you are unsure.",
  "bestSites": ["up to 3 of: ${Object.keys(SITES).join(", ")} where this kind of item sells best"],
- "confidence": "high | medium | low: how sure you are about what the item is"
+ "confidence": "high | medium | low: how sure you are about what the item is",
+ "questions": [{"q": "short question", "options": ["2 to 5 short answers the seller can tap"]}],
+ "candidates": [{"name": "an exact model or version this could be", "tell": "how to tell it apart, a few words", "low": 0, "high": 0}],
+ "suggestPrice": 0,
+ "suggestFloor": 0
 }
-priceLow and priceHigh are a typical US used resale range in dollars for this item in this condition, from your general knowledge. Use 0 for both if you can't tell.`;
+priceLow and priceHigh are a typical US used resale range in dollars for this item in this condition, from your general knowledge. Use 0 for both if you can't tell.
+questions: up to 4 things that would pin down the exact model or move the price the most (size, model number, generation, storage, does it work, what's included). Ask only what the photos and notes don't already answer, and never repeat something the seller already answered. Empty array when nothing more is needed.
+candidates: when the exact model isn't certain, the up to 4 most likely exact models, each with its own used price range in dollars. Empty array when the model is certain.
+suggestPrice is the one list price in dollars you'd put on it to sell within a few weeks, given what you know right now. suggestFloor is the lowest offer worth taking. Use 0 if you can't tell.`;
 }
 async function identify(blobs, notes, signal, name) {
   const imgs = S.maxImages ? blobs.slice(0, S.maxImages) : [];
@@ -464,6 +475,10 @@ function fromAI(r) {
     description: str(r.description), keywords: strs(r.keywords).slice(0, 8), search: str(r.search),
     est: lo && hi ? { low: Math.min(lo, hi), high: Math.max(lo, hi), note: str(r.priceNote), at: nowISO() } : null,
     bestSites: strs(r.bestSites).filter(k => SITES[k]).slice(0, 3), confidence: str(r.confidence).toLowerCase(),
+    ask: (Array.isArray(r.questions) ? r.questions : []).map(q => ({ q: str(q && q.q), options: strs(q && q.options).slice(0, 6), a: "" })).filter(q => q.q && q.options.length >= 2).slice(0, 4),
+    picks: (Array.isArray(r.candidates) ? r.candidates : []).map(c => ({ name: str(c && c.name), tell: str(c && c.tell), low: num(c && c.low) || 0, high: num(c && c.high) || 0 })).filter(c => c.name).slice(0, 4),
+    pick: "",
+    suggest: num(r.suggestPrice) ? { price: num(r.suggestPrice), floor: num(r.suggestFloor) || null, at: nowISO() } : null,
   };
 }
 
@@ -662,7 +677,7 @@ async function addItem(useAI) {
     await aiP;
     const t = nowISO();
     const item = { title: "", brand: "", model: "", category: "", size: "", color: "", condition: "", flaws: [], unsure: [], description: "",
-      keywords: [], search: "", est: null, bestSites: [], confidence: "", ...(ai || {}),
+      keywords: [], search: "", est: null, bestSites: [], confidence: "", ask: [], picks: [], pick: "", suggest: null, facts: [], ...(ai || {}),
       photos: ids, cost, price: null, floor: null, comps: [], posts: {}, sold: null, spot: "", notes, createdAt: t, updatedAt: t };
     if (!item.title) item.title = name.slice(0, 80);
     if (!item.search) item.search = name;
@@ -723,6 +738,7 @@ function openItem(id, seed) {
   if (!it) return;
   cur = clone(it); curId = id; pending = {};
   cur.posts = cur.posts || {}; cur.photos = cur.photos || []; cur.flaws = cur.flaws || []; cur.comps = cur.comps || []; cur.keywords = cur.keywords || [];
+  cur.ask = cur.ask || []; cur.picks = cur.picks || []; cur.facts = cur.facts || [];
   document.documentElement.style.overflow = "hidden";
   renderSheet(); $("#sheet").hidden = false; $("#sheet").scrollTop = 0;
 }
@@ -781,7 +797,7 @@ function renderSheet() {
   const photoBtns = h("div", { class: "row" });
   if (S.assets) photoBtns.append(h("label", { class: "btn sm", for: "it-more" }, ic("cam", 16), "Add photos"), more);
   if (S.downloads && cur.photos.length) photoBtns.append(h("button", { class: "btn sm", type: "button", onclick: savePhotos }, ic("save", 16), "Save to phone"));
-  if (S.sample) photoBtns.append(confirmBtn("Rewrite", "Replace the listing?", reIdentify, "btn sm", "spark"));
+  if (S.sample) photoBtns.append(confirmBtn("Rewrite", "Replace the listing?", refine, "btn sm", "spark"));
   const heroTitle = h("h2", null);
   const stepEls = {};
   const steps = h("div", { class: "steps" }, [["photos", "Photos"], ["listing", "Listing"], ["price", "Price"], ["post", "Posted"], ["sold", "Sold"]].map(([k, label]) => (stepEls[k] = h("div", { class: "step" }, h("i"), label))));
@@ -789,6 +805,43 @@ function renderSheet() {
   if (cur.example) body.append(note("info", "spark", "Example item. Delete it under More."));
   if (cur.confidence === "low") body.append(note("", "warn", "Claude wasn't sure what this is. Double-check it."));
   if ((cur.unsure || []).length) body.append(note("", "warn", h("strong", null, "Check before you post"), h("div", { class: "chips wrapc", style: "margin-top:6px" }, cur.unsure.map(u => h("span", { class: "pill" }, u)))));
+
+  /* pin it down: tap answers, pick the exact model, get one price */
+  const pin = h("div", { class: "sec", id: "it-pin" });
+  const drawPin = () => {
+    pin.replaceChildren();
+    const open = cur.ask.length || cur.picks.length;
+    pin.hidden = !(open || cur.suggest || cur.facts.length);
+    if (pin.hidden) return;
+    pin.append(h("div", { class: "row" }, h("span", { class: "sico" }, ic("spark", 18)), h("h3", { class: "grow" }, open ? "Pin it down" : "Pinned down"),
+      cur.model && h("span", { class: "pill good" }, ic("check", 12), cur.model)));
+    if (cur.facts.length) pin.append(h("div", { class: "chips wrapc" }, cur.facts.map(f => h("span", { class: "pill" }, f.a || f))));
+    cur.ask.forEach((q, i) => {
+      const chip = opt => h("button", { class: "chip", type: "button", "aria-pressed": String(q.a === opt), onclick: () => {
+        cur.ask = cur.ask.map((x, j) => j === i ? { ...x, a: x.a === opt ? "" : opt } : x); queueSave({ ask: cur.ask }); drawPin();
+      } }, opt);
+      pin.append(h("div", { class: "f" }, h("span", { class: "fl" }, q.q), h("div", { class: "chips wrapc" }, q.options.map(chip), chip("Not sure"))));
+    });
+    if (cur.picks.length) pin.append(h("div", { class: "f" }, h("span", { class: "fl" }, "Which one is it?"),
+      cur.picks.map(c => h("button", { class: "pick", type: "button", "aria-pressed": String(cur.pick === c.name), onclick: () => { set("pick", cur.pick === c.name ? "" : c.name); drawPin(); } },
+        h("span", { class: "grow" }, h("strong", null, c.name), c.tell && h("span", { class: "small muted", style: "display:block" }, c.tell)),
+        c.high ? h("span", { class: "mono" }, money(c.low) + "–" + money(c.high)) : null))));
+    if (cur.suggest && cur.suggest.price) pin.append(h("div", { class: "row" },
+      h("span", { class: "sticker big" }, money(cur.suggest.price)),
+      h("span", { class: "grow small" }, h("strong", null, open ? "Price so far" : "Suggested price"), h("span", { class: "muted", style: "display:block" }, (cur.suggest.floor ? "Take " + money(cur.suggest.floor) + " or more. " : "") + "From memory, so check sold prices.")),
+      cur.price !== cur.suggest.price && h("button", { class: "btn sm", type: "button", onclick: () => {
+        const patch = { price: cur.suggest.price }; if (cur.suggest.floor && !cur.floor) patch.floor = cur.suggest.floor;
+        Object.assign(cur, patch); queueSave(patch);
+        $("#it-price").value = cur.price; if (patch.floor) $("#it-floor").value = cur.floor;
+        drawGauge(); drawPosts(); drawPin(); toast("Price set to " + money(cur.price));
+      } }, ic("check", 16), "Use it")));
+    if (open && S.sample) {
+      const answered = cur.ask.some(q => q.a) || cur.pick;
+      pin.append(h("div", { class: "row" }, h("button", { class: "btn pri", type: "button", id: "it-refine", onclick: refine }, ic("spark", 18), answered ? "Get my price" : "Skip the questions, get a price")));
+    }
+  };
+  drawPin();
+  body.append(pin);
 
   const done = () => ({ photos: cur.photos.length > 0, listing: !!(cur.title && cur.condition), price: !!cur.price, post: postedOn(cur).length > 0, sold: !!cur.sold });
   const d0 = done();
@@ -979,16 +1032,31 @@ async function savePhotos() {
   }
   toast("Photos saved");
 }
-async function reIdentify() {
-  let blobs = [];
+let refining = false;
+async function refine() {
+  if (refining || !cur) return;
+  refining = true;
+  const btn = $("#it-refine"); if (btn) { btn.disabled = true; btn.lastChild.textContent = "Claude is working…"; }
   saveState("Claude is working…");
+  let blobs = [];
   if (cur.photos.length && S.maxImages) { try { blobs = await photoBlobs(); } catch { blobs = []; } }
   const id = curId;
+  const said = [...cur.facts.map(f => f.q ? f.q + " " + f.a : String(f)), ...cur.ask.filter(q => q.a).map(q => q.q + " " + q.a)];
+  if (cur.pick) said.push("The exact model is: " + cur.pick);
+  const known = [["Brand", cur.brand], ["Model", cur.model], ["Size", cur.size], ["Color", cur.color], ["Condition", cur.condition], ["Flaws", cur.flaws.join("; ")]].filter(x => x[1]).map(x => x[0] + ": " + x[1]);
+  const notes = [cur.notes, known.length ? "Already on the listing:\n" + known.join("\n") : "",
+    said.length ? "Answers the seller already gave. Use them and don't ask these again:\n- " + said.join("\n- ") : ""].filter(Boolean).join("\n\n");
   try {
-    const ai = fromAI(await identify(blobs, cur.notes || "", undefined, cur.title || ""));
+    const ai = fromAI(await identify(blobs, notes, undefined, cur.title || ""));
     if (curId !== id) return;
-    Object.assign(cur, ai); queueSave(ai); renderSheet(); toast("Listing rewritten");
-  } catch (e) { saveState("Saved"); toast(sampleMsg(e)); }
+    for (const k of Object.keys(ai)) {
+      const v = ai[k], empty = v === "" || v == null || (Array.isArray(v) && !v.length);
+      if (empty && !["ask", "picks", "pick", "unsure"].includes(k)) delete ai[k];
+    }
+    ai.facts = [...cur.facts, ...cur.ask.filter(q => q.a && q.a !== "Not sure").map(q => ({ q: q.q, a: q.a }))].slice(-12);
+    Object.assign(cur, ai); queueSave(ai); renderSheet(); toast(cur.ask.length ? "A few more questions" : "Price ready");
+  } catch (e) { saveState("Saved"); toast(sampleMsg(e)); if (btn) { btn.disabled = false; btn.lastChild.textContent = "Get my price"; } }
+  finally { refining = false; }
 }
 
 /* ---------- trends ---------- */

@@ -233,7 +233,7 @@ input[type=range]{width:100%;accent-color:var(--act)}
 <main class="wrap">
   <section id="v-shelf" class="stack">
     <div id="dash" class="stack"></div>
-    <input id="q" class="in" type="search" placeholder="Search" aria-label="Search your items">
+    <input id="q" class="in" type="search" placeholder="Search, or type something to sell" aria-label="Search your items, or type something new to sell">
     <div id="chips" class="chips"></div>
     <div id="shelfnote" class="note" hidden></div>
     <div id="list"></div>
@@ -247,10 +247,12 @@ input[type=range]{width:100%;accent-color:var(--act)}
       <div><span><svg class="ic" width="24" height="24"><use href="#i-spark"/></svg></span>Claude writes it</div>
       <div><span><svg class="ic" width="24" height="24"><use href="#i-send"/></svg></span>You post it</div>
     </div>
+    <label class="f"><span class="fl">What is it?</span>
+      <input id="add-name" class="in" placeholder="Sceptre 24 inch monitor" autocomplete="off"></label>
     <label class="drop" for="pick">
       <svg class="ic" width="40" height="40"><use href="#i-cam"/></svg>
       <strong>Add photos</strong>
-      <span class="muted small">Front, back, tags, every flaw</span>
+      <span class="muted small">Optional. Front, back, tags, every flaw.</span>
     </label>
     <input id="pick" type="file" accept="image/*" multiple hidden>
     <div id="picked" class="thumbs"></div>
@@ -415,9 +417,11 @@ const sampleMsg = e => ({
 }[e && e.code] || "Claude couldn't be reached. Try again.");
 
 /* ---------- Claude: identify from photos ---------- */
-function identifyPrompt(n, notes) {
-  return `You help a person who sells secondhand items online. The ${n} attached photo${n === 1 ? " shows" : "s show"} ONE item they want to sell.
-${notes ? 'What the seller told you: """' + notes.slice(0, 2000) + '"""' : "The seller gave no notes."}
+function identifyPrompt(n, notes, name) {
+  return `You help a person who sells secondhand items online. ${n ? "The " + n + " attached photo" + (n === 1 ? " shows" : "s show") + " ONE item they want to sell." : "They want to sell ONE item. There are no photos, so go only on what they typed."}
+${name ? 'The seller calls it: """' + name.slice(0, 200) + '"""' : ""}
+${notes ? 'What the seller told you: """' + notes.slice(0, 2000) + '"""' : "The seller gave no other notes."}
+${n ? "" : "With no photos you can't see wear: leave condition as an empty string unless the seller stated it, list only flaws the seller mentioned, and use the unsure list for what to check on this kind of item (exact model number, size, missing parts, whether it works)."}
 
 Work out what the item is and write the listing. Be flatly honest about wear. Never claim anything the photos or notes don't show (working order, authenticity, measurements, materials you can't see).
 
@@ -443,9 +447,11 @@ Reply with only one JSON object with exactly these keys:
 }
 priceLow and priceHigh are a typical US used resale range in dollars for this item in this condition, from your general knowledge. Use 0 for both if you can't tell.`;
 }
-async function identify(blobs, notes, signal) {
-  const imgs = blobs.slice(0, Math.max(1, S.maxImages));
-  const r = await S.sample.json(identifyPrompt(imgs.length, notes), { images: imgs, signal, cache: false });
+async function identify(blobs, notes, signal, name) {
+  const imgs = S.maxImages ? blobs.slice(0, S.maxImages) : [];
+  const opts = { signal, cache: false };
+  if (imgs.length) opts.images = imgs;
+  const r = await S.sample.json(identifyPrompt(imgs.length, notes, name), opts);
   if (!r || typeof r !== "object" || Array.isArray(r)) throw { code: "invalid_json" };
   return r;
 }
@@ -551,7 +557,8 @@ function renderShelf() {
   const csv = $("#csv");
   csv.hidden = !(S.downloads && S.items.some(i => !i.example));
   csv.replaceChildren(ic("save", 16), "Spreadsheet");
-  if (!S.items.length) {
+  const typed = S.q.trim();
+  if (!S.items.length && !(typed && S.loaded)) {
     list.append(h("div", { class: "empty" },
       h("span", { class: "sico", style: "width:64px;height:64px;border-radius:20px" }, ic("cam", 32)),
       h("h2", null, S.loaded ? "Nothing on the shelf yet" : "Opening the stockroom…"),
@@ -559,8 +566,24 @@ function renderShelf() {
       S.loaded && h("a", { class: "btn pri", href: "#add" }, ic("cam", 18), "Add your first item")));
     return;
   }
-  if (!rows.length) { list.append(h("div", { class: "empty" }, h("p", null, "Nothing matches."))); return; }
+  if (!rows.length) {
+    list.append(typed
+      ? h("div", { class: "empty" }, h("span", { class: "sico", style: "width:56px;height:56px;border-radius:18px" }, ic("tag", 28)),
+          h("h2", null, "Not on your shelf yet"),
+          h("button", { class: "btn pri", type: "button", onclick: () => quickAdd(typed, true) }, ic("spark", 18), "Add \u201c" + typed + "\u201d"),
+          h("button", { class: "btn sm", type: "button", onclick: () => quickAdd(typed, false) }, ic("cam", 16), "Add photos first"))
+      : h("div", { class: "empty" }, h("p", null, "Nothing here yet.")));
+    return;
+  }
   for (const it of rows) list.append(itemCard(it));
+  if (typed) list.append(h("button", { class: "card", type: "button", style: "border-style:dashed;align-items:center;justify-content:center;gap:8px;padding:18px;text-align:center;min-height:120px", onclick: () => quickAdd(typed, true) },
+    ic("spark", 24), h("span", { class: "ititle" }, "Add \u201c" + typed + "\u201d as new")));
+}
+function quickAdd(name, go) {
+  $("#add-name").value = name;
+  $("#q").value = ""; S.q = ""; renderShelf();
+  location.hash = "#add";
+  if (go) addItem(!!S.sample); else $("#add-name").focus();
 }
 function itemCard(it) {
   const st = statusOf(it);
@@ -582,6 +605,11 @@ function itemCard(it) {
     h("div", { class: "meta" }, h("span", { class: "ititle" }, it.title || "Untitled item"), sub));
 }
 $("#q").addEventListener("input", e => { S.q = e.target.value; renderShelf(); });
+$("#q").addEventListener("keydown", e => {
+  if (e.key !== "Enter" || !S.q.trim()) return;
+  const q = S.q.trim().toLowerCase();
+  if (!S.items.some(i => [i.title, i.brand, i.model, i.category].join(" ").toLowerCase().includes(q))) { e.preventDefault(); quickAdd(S.q.trim(), true); }
+});
 $("#csv").addEventListener("click", async () => {
   const cols = ["Title", "Brand", "Category", "Condition", "Status", "Paid", "Asking", "Lowest", "Posted on", "Listed", "Sold price", "Sold on", "Sold date", "Stored", "Notes"];
   const cell = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
@@ -610,7 +638,8 @@ function addStatus(msg) { const el = $("#add-status"); el.hidden = !msg; el.text
 async function addItem(useAI) {
   if (adding) return;
   if (!S.db) { addStatus("Your inventory isn't connected, so this can't be saved. Open this page inside Claude."); return; }
-  if (useAI && !S.picked.length) { addStatus("Add a photo first so Claude has something to look at."); return; }
+  const name = $("#add-name").value.trim();
+  if (!S.picked.length && !name) { addStatus("Type what it is, or add a photo."); return; }
   adding = true; $("#add-ai").disabled = $("#add-plain").disabled = true;
   const notes = $("#add-notes").value.trim(), cost = num($("#add-cost").value);
   try {
@@ -620,7 +649,7 @@ async function addItem(useAI) {
     let aiP = Promise.resolve();
     if (useAI) {
       addCtl = new AbortController(); $("#add-stop").hidden = false;
-      aiP = identify(blobs, notes, addCtl.signal).then(r => { ai = fromAI(r); }, e => { aiNote = sampleMsg(e); });
+      aiP = identify(blobs, notes, addCtl.signal, name).then(r => { ai = fromAI(r); }, e => { aiNote = sampleMsg(e); });
     }
     const ids = []; let failed = 0;
     if (S.assets) {
@@ -629,17 +658,19 @@ async function addItem(useAI) {
         try { ids.push((await S.assets.upload(blobs[i])).id); } catch { failed++; }
       }
     } else failed = blobs.length;
-    if (useAI) addStatus("Claude is looking at the photos. Up to a minute…");
+    if (useAI) addStatus(blobs.length ? "Claude is looking at the photos. Up to a minute…" : "Claude is writing the listing. Up to a minute…");
     await aiP;
     const t = nowISO();
     const item = { title: "", brand: "", model: "", category: "", size: "", color: "", condition: "", flaws: [], unsure: [], description: "",
       keywords: [], search: "", est: null, bestSites: [], confidence: "", ...(ai || {}),
       photos: ids, cost, price: null, floor: null, comps: [], posts: {}, sold: null, spot: "", notes, createdAt: t, updatedAt: t };
+    if (!item.title) item.title = name.slice(0, 80);
+    if (!item.search) item.search = name;
     item.status = statusOf(item);
     const ref = S.db.collection("items").doc();
     await ref.set(item);
     S.picked.forEach(p => URL.revokeObjectURL(p.url)); S.picked = []; renderPicked();
-    $("#add-notes").value = ""; $("#add-cost").value = ""; addStatus("");
+    $("#add-name").value = ""; $("#add-notes").value = ""; $("#add-cost").value = ""; addStatus("");
     location.hash = "#shelf";
     openItem(ref.id, item);
     const bits = [];
@@ -750,7 +781,7 @@ function renderSheet() {
   const photoBtns = h("div", { class: "row" });
   if (S.assets) photoBtns.append(h("label", { class: "btn sm", for: "it-more" }, ic("cam", 16), "Add photos"), more);
   if (S.downloads && cur.photos.length) photoBtns.append(h("button", { class: "btn sm", type: "button", onclick: savePhotos }, ic("save", 16), "Save to phone"));
-  if (S.sample && S.maxImages && cur.photos.length) photoBtns.append(confirmBtn("Rewrite", "Replace the listing?", reIdentify, "btn sm", "spark"));
+  if (S.sample) photoBtns.append(confirmBtn("Rewrite", "Replace the listing?", reIdentify, "btn sm", "spark"));
   const heroTitle = h("h2", null);
   const stepEls = {};
   const steps = h("div", { class: "steps" }, [["photos", "Photos"], ["listing", "Listing"], ["price", "Price"], ["post", "Posted"], ["sold", "Sold"]].map(([k, label]) => (stepEls[k] = h("div", { class: "step" }, h("i"), label))));
@@ -949,12 +980,12 @@ async function savePhotos() {
   toast("Photos saved");
 }
 async function reIdentify() {
-  let blobs;
-  saveState("Claude is looking…");
-  try { blobs = await photoBlobs(); } catch { saveState("Saved"); toast("Couldn't load the photos for Claude."); return; }
+  let blobs = [];
+  saveState("Claude is working…");
+  if (cur.photos.length && S.maxImages) { try { blobs = await photoBlobs(); } catch { blobs = []; } }
   const id = curId;
   try {
-    const ai = fromAI(await identify(blobs, cur.notes || ""));
+    const ai = fromAI(await identify(blobs, cur.notes || "", undefined, cur.title || ""));
     if (curId !== id) return;
     Object.assign(cur, ai); queueSave(ai); renderSheet(); toast("Listing rewritten");
   } catch (e) { saveState("Saved"); toast(sampleMsg(e)); }
@@ -1035,7 +1066,7 @@ route(); renderShelf();
   const [db, assets, sample, downloads] = await Promise.all([use("db"), use("assets"), use("sample"), use("downloads")]);
   Object.assign(S, { db, assets, sample, downloads });
   if (sample) { try { const lim = await sample.limits(); S.maxImages = lim && lim.images ? lim.images.maxCount : 0; } catch { S.maxImages = 0; } }
-  $("#add-ai").hidden = !(sample && S.maxImages);
+  $("#add-ai").hidden = !sample;
   if (!db) { S.loaded = true; S.dead = "Your inventory can't be reached from this view. Open it signed in to Claude."; renderShelf(); return; }
   const slowTimer = setTimeout(() => { S.slow = true; renderShelf(); }, 10000);
   db.collection("items").onSnapshot(snap => {

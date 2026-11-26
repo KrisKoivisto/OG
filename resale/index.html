@@ -9,7 +9,7 @@
   --act:#FF5B1F; --act-ink:#0B0B0D; --act-fg:#FF7A45; --act-soft:#33190F;
   --good:#34D27F; --good-soft:#12291D; --info:#79AEFF; --info-soft:#15223A; --warn:#FFB547; --warn-soft:#33260F; --bad:#FF7A7A;
   --tag:#FF5B1F; --tag-ink:#0B0B0D;
-  --s1:#338ced; --s2:#e76624; --s3:#00a888; --s4:#d28e05; --s5:#e24d8b; --s6:#0aac23;
+  --s1:#338ced; --s2:#e76624; --s3:#00a888; --s4:#d28e05; --s5:#e24d8b; --s6:#0aac23; --s7:#9887ef; --s8:#eb6263;
   --font-d:"Archivo","Inter",system-ui,sans-serif;
   --font-b:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   --font-m:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
@@ -21,7 +21,7 @@
     --act:#FF5B1F; --act-ink:#0B0B0D; --act-fg:#C2410C; --act-soft:#FFE6DA;
     --good:#127A45; --good-soft:#DCF2E5; --info:#1E5FD1; --info-soft:#E0EAFC; --warn:#8F4E00; --warn-soft:#FBEBD0; --bad:#B3261E;
     --tag:#FF5B1F; --tag-ink:#0B0B0D;
-    --s1:#257de0; --s2:#f47230; --s3:#00b894; --s4:#f2a600; --s5:#ee7fac; --s6:#008a17;
+    --s1:#257de0; --s2:#f47230; --s3:#00b894; --s4:#f2a600; --s5:#ee7fac; --s6:#008a17; --s7:#6a4ce2; --s8:#ec4647;
     color-scheme:light;
   }
 }
@@ -30,7 +30,7 @@
   --act:#FF5B1F; --act-ink:#0B0B0D; --act-fg:#C2410C; --act-soft:#FFE6DA;
   --good:#127A45; --good-soft:#DCF2E5; --info:#1E5FD1; --info-soft:#E0EAFC; --warn:#8F4E00; --warn-soft:#FBEBD0; --bad:#B3261E;
   --tag:#FF5B1F; --tag-ink:#0B0B0D;
-  --s1:#257de0; --s2:#f47230; --s3:#00b894; --s4:#f2a600; --s5:#ee7fac; --s6:#008a17;
+  --s1:#257de0; --s2:#f47230; --s3:#00b894; --s4:#f2a600; --s5:#ee7fac; --s6:#008a17; --s7:#6a4ce2; --s8:#ec4647;
   color-scheme:light;
 }
 *{box-sizing:border-box}
@@ -172,7 +172,7 @@ details[open]>summary .chev{transform:rotate(90deg)}
 .bar{height:6px;border-radius:0 3px 3px 0;background:var(--line);position:relative}
 .bar i{display:block;height:100%;border-radius:0 3px 3px 0;background:var(--good)}
 .check{display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer}
-.check input{width:20px;height:20px;accent-color:var(--act)}
+.check input{flex:none;width:20px;height:20px;accent-color:var(--act)}
 
 /* price gauge */
 .gauge{position:relative;height:78px;margin:0 6px}
@@ -315,8 +315,14 @@ const SITES = {
     fee: p => p * 0.033 + 0.45, feeText: "About 3.3% + $0.45" },
   craigslist: { name: "Craigslist", short: "Craigslist", color: "var(--s6)", open: "https://post.craigslist.org/",
     fee: () => 0, feeText: "Free" },
+  stockx: { name: "StockX", short: "StockX", color: "var(--s7)", open: "https://stockx.com/sell",
+    find: q => "https://stockx.com/search?s=" + q, findLabel: "StockX",
+    fee: p => Math.max(5, p * 0.09) + p * 0.03, feeText: "9% (min $5) + 3% processing, + $5 label" },
+  goat: { name: "GOAT", short: "GOAT", color: "var(--s8)", open: "https://www.goat.com/",
+    find: q => "https://www.goat.com/search?query=" + q, findLabel: "GOAT",
+    fee: p => { const net = p - p * 0.095 - 5; return p * 0.095 + 5 + Math.max(0, net) * 0.029; }, feeText: "9.5% + $5, then 2.9% to cash out. Sell in the GOAT app." },
 };
-const DEFAULT_ON = { ebay: true, fb: true, mercari: true, poshmark: true, depop: false, craigslist: false };
+const DEFAULT_ON = { ebay: true, fb: true, mercari: false, poshmark: false, depop: false, craigslist: false, stockx: false, goat: false };
 const CONDITIONS = ["New with tags", "New without tags", "Like new", "Good", "Fair", "For parts or repair"];
 const STATUS_LABEL = { draft: "Needs info", ready: "Ready", listed: "Listed", sold: "Sold" };
 const STALE_DAYS = 30;
@@ -377,6 +383,13 @@ function listedSince(it) {
   return ds[0] || "";
 }
 const isStale = it => statusOf(it) === "listed" && daysSince(listedSince(it)) >= STALE_DAYS;
+function dropTo(it) {
+  if (!it.price) return null;
+  let next = Math.floor(it.price * 0.9);
+  if (it.price >= 20) next = Math.floor(next / 5) * 5 || next;
+  if (it.floor) next = Math.max(next, it.floor);
+  return next < it.price ? next : null;
+}
 const postedOn = it => Object.keys(SITES).filter(k => it.posts && it.posts[k] && it.posts[k].on);
 
 let toastTimer;
@@ -538,6 +551,9 @@ function renderDash() {
     kpi("tag", "In stock", money(asking) || "$0", open.length + (open.length === 1 ? " item" : " items")),
     kpi("check", "Sold", money(soldSum) || "$0", sold.length + (sold.length === 1 ? " item" : " items")),
     kpi("cash", "Profit", money(profit) || "$0", "after fees")));
+  const stale = base.filter(i => isStale(i) && dropTo(i));
+  if (stale.length) dash.append(h("button", { class: "note", type: "button", style: "border:0;font:inherit;text-align:left;cursor:pointer;width:100%", onclick: () => { S.filter = "stale"; renderShelf(); } },
+    ic("clock", 18), h("span", { class: "grow" }, h("strong", null, stale.length + (stale.length === 1 ? " item has" : " items have") + " sat " + STALE_DAYS + "+ days. "), "Tap to drop prices."), ic("chev", 16)));
   const parts = [["To post", n.todo, "var(--s2)"], ["Listed", n.listed, "var(--s1)"], ["Sold", n.sold, "var(--s3)"]];
   const total = n.todo + n.listed + n.sold;
   const pipe = h("div", { class: "pipe", role: "img", "aria-label": parts.map(p => p[1] + " " + p[0].toLowerCase()).join(", ") });
@@ -816,6 +832,15 @@ function renderSheet() {
   body.append(strip, photoBtns, heroTitle, steps);
   if (cur.example) body.append(note("info", "spark", "Sample item. Delete it under More."));
   if (cur.confidence === "low") body.append(note("", "warn", "Claude wasn't sure what this is. Double-check it."));
+  if (isStale(cur) && dropTo(cur)) {
+    const nudge = note("", "clock", h("strong", null, "Sitting " + daysSince(listedSince(cur)) + " days."), " Drop it 10% to get it moving.",
+      h("div", { class: "row", style: "margin-top:8px" }, h("button", { class: "btn sm pri", type: "button", onclick: () => {
+        const next = dropTo(cur); if (!next) return;
+        const old = cur.price; set("price", next); const pi = $("#it-price"); if (pi) pi.value = next;
+        nudge.remove(); toast(money(old) + " → " + money(next) + ". Update it on each site too.");
+      } }, ic("down", 16), money(cur.price) + " → " + money(dropTo(cur)))));
+    body.append(nudge);
+  }
   if ((cur.unsure || []).length) body.append(note("", "warn", h("strong", null, "Check before you post"), h("div", { class: "chips wrapc", style: "margin-top:6px" }, cur.unsure.map(u => h("span", { class: "pill" }, u)))));
 
   /* pin it down: tap answers, pick the exact model, get one price */
@@ -1111,11 +1136,14 @@ function renderSites() {
     { k: "poshmark", label: "Poshmark", fee: SITES.poshmark.fee }, { k: "ebay", label: "eBay", fee: SITES.ebay.fee },
     { k: "mercari", label: "Mercari", fee: SITES.mercari.fee }, { k: "fb", label: "Facebook, shipped", fee: SITES.fb.feeShip },
     { k: "depop", label: "Depop", fee: SITES.depop.fee }, { k: "fb", label: "Facebook, local", fee: SITES.fb.fee },
-    { k: "craigslist", label: "Craigslist", fee: SITES.craigslist.fee }];
+    { k: "craigslist", label: "Craigslist", fee: SITES.craigslist.fee },
+    { k: "stockx", label: "StockX", fee: SITES.stockx.fee }, { k: "goat", label: "GOAT", fee: SITES.goat.fee }];
+  rows.sort((a, b) => b.fee(S.feePrice) - a.fee(S.feePrice));
   const title = h("h3", null), chart = h("div", { class: "fee", id: "fee-chart" });
   const slider = h("input", { type: "range", id: "fee-price", min: 5, max: 300, step: 5, "aria-label": "Sale price" }); slider.value = S.feePrice;
   const draw = () => {
     const p = S.feePrice; title.textContent = "What each site takes from a " + money(p) + " sale";
+    rows.sort((a, b) => b.fee(p) - a.fee(p));
     const fees = rows.map(r => r.fee(p)), max = Math.max(...fees, 0.01);
     chart.replaceChildren();
     rows.forEach((r, i) => chart.append(

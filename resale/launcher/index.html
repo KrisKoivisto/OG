@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Stockroom</title>
+<meta name="apple-mobile-web-app-title" content="Stockroom">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0B0B0D">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<script>
+  // Home Screen shortcuts are saved with ?go, so tapping the icon jumps straight to the app.
+  var APP = "https://claude.ai/artifact/JdjDaiRSDGZEdjmAjGL7LZ";
+  if (/[?&]go\b/.test(location.search)) location.replace(APP);
+</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,800..900&family=Inter:wght@500;600;700&family=JetBrains+Mono:wght@700&display=swap">
+<style>
+  :root{--bg:#0B0B0D;--surface:#151518;--line:#2A2A31;--ink:#F5F5F4;--muted:#8E8E97;--act:#FF5B1F;--act-ink:#0B0B0D;color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:500 16px/1.45 Inter,system-ui,sans-serif;min-height:100vh;
+    padding:calc(env(safe-area-inset-top,0px) + 40px) max(20px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 32px) max(20px,env(safe-area-inset-left,0px))}
+  main{max-width:420px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+  img.icon{width:84px;height:84px;border-radius:20px}
+  h1{margin:0;font-family:Archivo,Inter,sans-serif;font-stretch:125%;font-weight:900;font-size:2.1rem;line-height:.95;text-transform:uppercase;letter-spacing:-.02em}
+  h1 span{color:var(--act);display:block}
+  ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:s}
+  li{display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 14px;counter-increment:s}
+  li::before{content:counter(s);flex:none;width:28px;height:28px;border-radius:8px;background:var(--act);color:var(--act-ink);font:700 .9rem "JetBrains Mono",monospace;display:flex;align-items:center;justify-content:center}
+  b{color:var(--ink)}
+  .muted{color:var(--muted);font-size:.9rem}
+  a.go{display:flex;align-items:center;justify-content:center;min-height:52px;border-radius:12px;background:var(--act);color:var(--act-ink);font-weight:700;text-decoration:none}
+</style>
+</head>
+<body>
+<main>
+  <img class="icon" src="apple-touch-icon.png" alt="">
+  <h1>Resale<span>Stockroom</span></h1>
+  <ol>
+    <li><span>Tap <b>Share</b> at the bottom of Safari</span></li>
+    <li><span>Tap <b>Add to Home Screen</b></span></li>
+    <li><span>Turn <b>Open as Web App</b> off, so it opens where you're signed in to Claude</span></li>
+    <li><span>Tap <b>Add</b></span></li>
+  </ol>
+  <p class="muted">Delete the old "@" shortcut after.</p>
+  <a class="go" id="go" href="https://claude.ai/artifact/JdjDaiRSDGZEdjmAjGL7LZ">Open Stockroom</a>
+</main>
+<script>
+  try { history.replaceState(null, "", location.pathname + "?go"); } catch (e) {}
+</script>
+</body>
+</html>

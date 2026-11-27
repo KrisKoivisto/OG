@@ -1,4 +1,4 @@
-# Resale Stockroom
+# Stockroom
 
 Inventory app for flipping sneakers and electronics. Lives here as a stopgap. It isn't part of the podcast toolkit and should move to its own repo.
 
